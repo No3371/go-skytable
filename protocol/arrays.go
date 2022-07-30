@@ -1,11 +1,11 @@
 package protocol
 
 type Array struct {
-    ArrayType ArrayType
-    Elements []interface{}
+	ArrayType CompoundType
+	Elements  []interface{}
 }
 
 type TypedArray struct {
-    Array
-    ElementType DataType
+	Array
+	ElementType SimpleType
 }

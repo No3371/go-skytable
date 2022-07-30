@@ -1,4 +1,4 @@
-package query
+package action
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/No3371/go-skytable/protocol"
 )
 
-func AppendValue (v interface{}, builder *strings.Builder, typed bool) error {
+func AppendElement(v interface{}, builder *strings.Builder, typed bool) error {
 	if v == nil {
 		fmt.Fprintf(builder, "\\0\n")
 		return nil
@@ -79,10 +79,12 @@ func AppendValue (v interface{}, builder *strings.Builder, typed bool) error {
 	case []byte:
 		// ???
 		if typed {
-			fmt.Fprintf(builder, "?%d\n%s\n", len(string(v)), string(v))
+			fmt.Fprintf(builder, "?%d\n", len(string(v)))
 		} else {
-			fmt.Fprintf(builder, "%d\n%s\n", len(string(v)), string(v))
+			fmt.Fprintf(builder, "%d\n", len(string(v)))
 		}
+		builder.Write(v)
+		builder.WriteByte('\n')
 	case *protocol.TypedArray:
 		if !typed {
 			return protocol.ErrUnexpectedProtocol
@@ -90,19 +92,19 @@ func AppendValue (v interface{}, builder *strings.Builder, typed bool) error {
 
 		fmt.Fprintf(builder, "%c%c%d\n", v.ArrayType, v.ElementType, len(v.Elements))
 		switch v.ArrayType {
-		case protocol.ArrayTypeTypedArray:
+		case protocol.CompoundTypeTypedArray:
 			for _, e := range v.Elements {
-				err := AppendValue(e, builder, false)
+				err := AppendElement(e, builder, false)
 				if err != nil {
 					return err
 				}
 			}
-		case protocol.ArrayTypeTypedNonNullArray:
+		case protocol.CompoundTypeTypedNonNullArray:
 			for _, e := range v.Elements {
 				if e == nil {
 					return protocol.ErrUnexpectedProtocol // NON NULL
 				}
-				err := AppendValue(e, builder, false)
+				err := AppendElement(e, builder, false)
 				if err != nil {
 					return err
 				}
@@ -112,21 +114,21 @@ func AppendValue (v interface{}, builder *strings.Builder, typed bool) error {
 		}
 	case *protocol.Array:
 		switch v.ArrayType {
-		case protocol.ArrayTypeArray:
+		case protocol.CompoundTypeArray:
 			if typed {
 				fmt.Fprintf(builder, "%c%d\n", protocol.DataTypeArray, len(v.Elements))
 			} else {
 				return protocol.ErrUnexpectedProtocol
 			}
 			for _, e := range v.Elements {
-				err := AppendValue(e, builder, true)
+				err := AppendElement(e, builder, true)
 				if err != nil {
 					return err
 				}
 			}
-		case protocol.ArrayTypeFlatArray:
+		case protocol.CompoundTypeFlatArray:
 			if typed {
-				fmt.Fprintf(builder, "%c%d\n", protocol.ArrayTypeFlatArray, len(v.Elements))
+				fmt.Fprintf(builder, "%c%d\n", protocol.CompoundTypeFlatArray, len(v.Elements))
 			} else {
 				return protocol.ErrUnexpectedProtocol
 			}
@@ -139,15 +141,15 @@ func AppendValue (v interface{}, builder *strings.Builder, typed bool) error {
 					return protocol.ErrUnexpectedProtocol
 				}
 
-				err := AppendValue(e, builder, false)
+				err := AppendElement(e, builder, false)
 				if err != nil {
 					return err
 				}
 			}
-		case protocol.ArrayTypeTypedArray:
+		case protocol.CompoundTypeTypedArray:
 			// for typed or typed-non-null array, use protocol.TypedArray instead of protocol.Array
 			return protocol.ErrIncorrectArrayUsage
-		case protocol.ArrayTypeAnyArray:
+		case protocol.CompoundTypeAnyArray:
 			if typed {
 				fmt.Fprintf(builder, "%c%d\n", protocol.DataTypeAnyArray, len(v.Elements))
 			} else {
@@ -158,12 +160,12 @@ func AppendValue (v interface{}, builder *strings.Builder, typed bool) error {
 					// NON NULL
 					return protocol.ErrUnexpectedProtocol
 				}
-				err := AppendValue(e, builder, false)
+				err := AppendElement(e, builder, false)
 				if err != nil {
 					return err
 				}
 			}
-		case protocol.ArrayTypeTypedNonNullArray:
+		case protocol.CompoundTypeTypedNonNullArray:
 			// for typed or typed-non-null array, use protocol.TypedArray instead of protocol.Array
 			return protocol.ErrIncorrectArrayUsage
 		}
@@ -175,20 +177,20 @@ func AppendValue (v interface{}, builder *strings.Builder, typed bool) error {
 }
 
 // elementType is only used when it's a TypedArray or TypedNonNullArray
-func AppendArrayHeader (arrayType protocol.ArrayType, elementType protocol.DataType, elementCount int, builder *strings.Builder) error {
+func AppendArrayHeader(arrayType protocol.CompoundType, elementType protocol.DataType, elementCount int, builder *strings.Builder) error {
 	switch arrayType {
-		case protocol.ArrayTypeArray:
-			fmt.Fprintf(builder, "%c%d\n", protocol.DataTypeArray, elementCount)
-		case protocol.ArrayTypeFlatArray:
-			fmt.Fprintf(builder, "%c%d\n", protocol.ArrayTypeFlatArray, elementCount)
-		case protocol.ArrayTypeTypedArray:
-			fmt.Fprintf(builder, "%c%c%d\n", protocol.ArrayTypeFlatArray, elementType, elementCount)
-		case protocol.ArrayTypeAnyArray:
-			fmt.Fprintf(builder, "%c%d\n", protocol.DataTypeAnyArray, elementCount)
-		case protocol.ArrayTypeTypedNonNullArray:
-			fmt.Fprintf(builder, "%c%d\n", protocol.DataTypeTypedNonNullArray, elementCount)
-		default:
-			return protocol.ErrUnexpectedProtocol
+	case protocol.CompoundTypeArray:
+		fmt.Fprintf(builder, "%c%d\n", protocol.DataTypeArray, elementCount)
+	case protocol.CompoundTypeFlatArray:
+		fmt.Fprintf(builder, "%c%d\n", protocol.CompoundTypeFlatArray, elementCount)
+	case protocol.CompoundTypeTypedArray:
+		fmt.Fprintf(builder, "%c%c%d\n", protocol.CompoundTypeFlatArray, elementType, elementCount)
+	case protocol.CompoundTypeAnyArray:
+		fmt.Fprintf(builder, "%c%d\n", protocol.DataTypeAnyArray, elementCount)
+	case protocol.CompoundTypeTypedNonNullArray:
+		fmt.Fprintf(builder, "%c%d\n", protocol.DataTypeTypedNonNullArray, elementCount)
+	default:
+		return protocol.ErrUnexpectedProtocol
 	}
 
 	return nil

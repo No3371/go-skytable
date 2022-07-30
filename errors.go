@@ -1,17 +1,66 @@
 package skytable
 
 import (
-	"errors"
 	"fmt"
-    "github.com/No3371/go-skytable/protocol"
 )
 
-var ErrUnexpectedProtocol = errors.New("unexepected Skyhash protocol")
-
-type ResponseErrorCode struct {
-	code protocol.ResponseCode
+type ErrLocal struct {
+	innerErr error
+	msg      string
 }
 
-func (e *ResponseErrorCode) Error() string {
-	return fmt.Sprintf("error code: %v", e.code)
+func NewLocalError(msg string, err error) ErrLocal {
+	return ErrLocal{
+		err,
+		msg,
+	}
+}
+
+func (err ErrLocal) Error() string {
+	return fmt.Sprintf("%s: %s", err.msg, err.innerErr)
+}
+
+func (err ErrLocal) Unwrap() error {
+	return err.innerErr
+}
+
+type ErrComu struct {
+	innerErr error
+	msg      string
+}
+
+func NewComuError(msg string, err error) ErrComu {
+	return ErrComu{
+		err,
+		msg,
+	}
+}
+
+func (err ErrComu) Error() string {
+	return fmt.Sprintf("%s: %s", err.msg, err.innerErr)
+}
+
+func (err ErrComu) Unwrap() error {
+	return err.innerErr
+}
+
+type ErrInvalidUsage ErrLocal
+
+func NewUsageError(msg string, err error) ErrInvalidUsage {
+	return ErrInvalidUsage{
+		err,
+		msg,
+	}
+}
+
+func (err ErrInvalidUsage) Error() string {
+	if err.innerErr != nil {
+		return fmt.Sprintf("%s: %s", err.msg, err.innerErr)
+	} else {
+		return err.msg
+	}
+}
+
+func (err ErrInvalidUsage) Unwrap() error {
+	return err.innerErr
 }

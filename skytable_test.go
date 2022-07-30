@@ -2,6 +2,7 @@ package skytable_test
 
 import (
 	"context"
+	"log"
 	"net"
 	"os"
 	"testing"
@@ -10,74 +11,90 @@ import (
 	"github.com/No3371/go-skytable/protocol"
 )
 
-// func TestTCP (t *testing.T) {
-//     sChan := make(chan struct{}, 1)
-//     fChan := make(chan error, 1)
-//     go func () {
-//         lsr, err := net.ListenTCP("tcp", &net.TCPAddr{ IP: []byte{ 127, 0, 0, 1 }, Port: 61819})
-//         if err != nil {
-//             t.Error(err)
-//             fChan<-err
-//             return
-//         }
-//         conn, err := lsr.AcceptTCP()
-//         if err != nil {
-//             t.Error(err)
-//             fChan<-err
-//             return
-//         }
-//         read, err := io.ReadAll(conn)
-//         if err != nil {
-//             t.Error(err)
-//             fChan<-err
-//             return
-//         }
-//         t.Log("TCP received")
-//         t.Log(string(read))
-//         t.Log(len(read))
-//         t.Log(string(read))
-//         t.Log("TCP received")
-//         conn.Write([]byte("RECEIVED"))
-//         sChan<-struct{}{}
-//     } ()
+const testUserName = "go-skytable-test"
 
-//     <-time.NewTimer(time.Second).C
+func GetTestToken () (string, bool) {
+    token, foundToken := os.LookupEnv("GO_SKYTABLE_TEST_TOKEN")
+    if foundToken {
+        return token, true
+    }
 
-// 	c, err := skytable.NewClient(context.Background(), &net.TCPAddr{ IP: []byte{ 127, 0, 0, 1 }, Port: 61819})
-//     if err != nil {
-//         t.Fatal(err)
-//     }
+    wd, err := os.Getwd()
+    if err != nil {
+        return "", false
+    }
+    log.Printf("Reading: %s", wd + "\\go-skytable-test")
+    read, err := os.ReadFile(wd + "\\go-skytable-test")
+    if err != nil {
+        return string(read), false
+    }
 
-//     go func () {
-//         <-time.NewTimer(time.Second).C
-//         c.Close()
-//     } ()
+    log.Printf("Test user: %s %s", testUserName, read)
+    return string(read), true
+}
 
-//     _ = c.AuthLogin("user", "token")
-
-//     select {
-//     case <-sChan:
-//     case err := <-fChan:
-//         t.Fatal(err)
-//     }
-// }
-
-func TestConnLocal(t *testing.T) {
+func TestConnPoolLocalAuth (t *testing.T) {
     ctx, cancel := context.WithCancel(context.Background())
     defer cancel()
-	c, err := skytable.NewClient(ctx, &net.TCPAddr{ IP: []byte{ 127, 0, 0, 1 }, Port: int(protocol.DefaultPort)})
+
+	localAddr := &net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}
+	c := skytable.NewConnPool(localAddr, skytable.ConnPoolOptions{
+        Cap: 16,
+        AuthProvider: func() (username, token string) {
+            t, gotToken := GetTestToken()
+            if !gotToken {
+                panic("failed to get token of" + testUserName)
+            }
+            return testUserName, t
+        },
+    })
+
+    token, gotToken := GetTestToken()
+    if !gotToken {
+        t.Fatalf("failed to get token of" + testUserName)
+    }
+
+    err := c.AuthLogin(ctx, testUserName, token)
+    if err != nil {
+        t.Fatal(err)
+    }
+}
+
+func TestConnLocalAuth (t *testing.T) {
+    ctx, cancel := context.WithCancel(context.Background())
+    defer cancel()
+	c, err := skytable.NewConn(&net.TCPAddr{ IP: []byte{ 127, 0, 0, 1 }, Port: int(protocol.DefaultPort)})
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    token, gotToken := GetTestToken()
+    if !gotToken {
+        t.Fatalf("failed to get token of '%s'", testUserName)
+    }
+
+    err = c.AuthLogin(ctx, testUserName, token)
+    if err != nil {
+        t.Fatal(err)
+    }
+}
+
+func TestConnLocalExistsDelSetGet(t *testing.T) {
+    ctx, cancel := context.WithCancel(context.Background())
+    defer cancel()
+	c, err := skytable.NewConn(&net.TCPAddr{ IP: []byte{ 127, 0, 0, 1 }, Port: int(protocol.DefaultPort)})
     if err != nil {
         t.Fatal(err)
     }
 
     t.Log("Connected!")
 
-    token, foundToken := os.LookupEnv("GO_SKYTABLE_TEST_TOKEN")
-    if !foundToken {
-        t.Fatal("GO_SKYTABLE_TEST_TOKEN not found in env")
+    token, gotToken := GetTestToken()
+    if !gotToken {
+        t.Fatalf("failed to get token of '%s'", testUserName)
     }
 
-    err = c.AuthLogin("go-skytable-test", token)
+    err = c.AuthLogin(ctx, testUserName, token)
     if err != nil {
         t.Fatal(err)
     }
@@ -99,14 +116,14 @@ func TestConnLocal(t *testing.T) {
         }
     }
 
-    err = c.SetString(k, v)
+    err = c.Set(ctx, k, v)
     if err != nil {
         t.Fatal(err)
     }
 
     t.Log("SET sent!")
 
-    respV, err := c.GetString(k)
+    respV, err := c.GetBytes(ctx, k)
     if err != nil {
         t.Fatal(err)
     }
@@ -114,8 +131,8 @@ func TestConnLocal(t *testing.T) {
     t.Log("GET done!")
 
     t.Log("SET: " + v)
-    t.Log("GET: " + respV)
-    if respV != v {
+    t.Log("GET: " + string(respV))
+    if string(respV) != v {
         t.Fail()
     }
 }

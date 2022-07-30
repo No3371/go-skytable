@@ -1,39 +1,22 @@
 package protocol
 
-import "fmt"
-
 //go:generate stringer -type=ResponseCode
 type ResponseCode int
 
 const (
-	Okay            ResponseCode = 0
-	Nil             ResponseCode = 1
-	OverwriteError  ResponseCode = 2
-	ActionError     ResponseCode = 3
-	PacketError     ResponseCode = 4
-	ServerError     ResponseCode = 5
-	OtherError      ResponseCode = 6
-	WrongtypeError  ResponseCode = 7
-	UnknownDataType ResponseCode = 8
-	EncodingError   ResponseCode = 9
-	BadCredentials  ResponseCode = 10
-	AuthnRealmError ResponseCode = 11
+	RespOkay            ResponseCode = 0
+	RespNil             ResponseCode = 1
+	RespOverwriteError  ResponseCode = 2
+	RespActionError     ResponseCode = 3
+	RespPacketError     ResponseCode = 4
+	RespServerError     ResponseCode = 5
+	RespOtherError      ResponseCode = 6
+	RespWrongtypeError  ResponseCode = 7
+	RespUnknownDataType ResponseCode = 8
+	RespEncodingError   ResponseCode = 9
+	RespBadCredentials  ResponseCode = 10
+	RespAuthnRealmError ResponseCode = 11
 )
-
-type ServerErrorResponse struct {
-	err string
-}
-
-func NewServerErrorResponse (err string) *ServerErrorResponse {
-	return &ServerErrorResponse{
-		err: err,
-	}
-}
-
-func (r *ServerErrorResponse) Error () string {
-	return fmt.Sprintf("skytable response error code: %s", r.err)
-}
-
 
 /*
 0	Okay	The server succeded in carrying out some operation

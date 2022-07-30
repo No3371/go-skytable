@@ -2,195 +2,86 @@ package skytable
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"log"
 
-	"net"
 	"strings"
-	"time"
 
 	"github.com/No3371/go-skytable/protocol"
-	"github.com/No3371/go-skytable/query"
 	"github.com/No3371/go-skytable/response"
 )
 
-// type SupportedTypes interface {
-//     ~string|~int8|~uint8|~int32|~uint32|~float32|[]byte|[]interface{}
-// }
-
-type Conn struct {
-	createdAt time.Time
-	usedAt  int64 // atomic
-	netConn net.Conn
-}
-
-type Client struct {
-	*Conn
-	ctx context.Context
-	strBuilder *strings.Builder
-	respReader *response.ResponseReader
-}
-
-func NewClient (ctx context.Context, remote *net.TCPAddr) (*Client, error) {
-	nc, err := net.DialTCP("tcp", nil, remote)
-	if err != nil {
-		return nil, err
-	}
-
-	conn := Conn {
-		createdAt: time.Now(),
-		usedAt: time.Now().UnixMilli(),
-		netConn: nc,
-	}
-
-	return &Client{
-		Conn: &conn,
-		ctx: ctx,
-		strBuilder: &strings.Builder{},
-		respReader: response.NewResponseReader(),
-	}, nil
-}
-
-func (c *Client) Close () error {
-	return c.Conn.netConn.Close()
-}
+const ProtoVer = "Skyhash-1.1"
 
 type Keyspace struct {
 }
 
 type QueryPacket struct {
-    queries []Query
+	ctx     context.Context
+	actions []Action
+}
+
+type RawResponsePacket struct {
+	resps []response.ResponseEntry
+	err   error
 }
 
 type ResponsePacket struct {
-    query *QueryPacket
-	resps []interface{}
-	err error
+	query *QueryPacket
+	resps []response.ResponseEntry
+	err   error
 }
 
 func (rr ResponsePacket) Err() error {
 	return rr.err
 }
 
-func (c *Client) BuildQuery (p *QueryPacket) (string, error) {
-	if p.queries == nil || len(p.queries) == 0 {
-		return "", errors.New("Invalid packet: no query")
-	}
-
-    c.strBuilder.Reset()
-	if len(p.queries) > 1 { // pipelined
-		fmt.Fprintf(c.strBuilder, "*%d\n", len(p.queries))
-
-	} else {
-		c.strBuilder.WriteString("*1\n")
-	}
-
-	for _, q := range p.queries {
-		q.AppendToPacket(c.strBuilder)
-	}
-
-	return c.strBuilder.String(), nil
+type Action interface {
+	AppendToPacket(builder *strings.Builder) error
+	ValidateProtocol(response interface{}) error
 }
 
+type STConn interface {
+	Heya (ctx context.Context, echo string) error
+	AuthLogin(ctx context.Context, username string, token string) error
 
-type Query interface {
-	AppendToPacket (*strings.Builder) error
-}
+	Exists (keys []string) (uint64, error)
+	Del    (keys []string) (uint64, error)
 
+	Get(ctx context.Context, key string) (response.ResponseEntry, error)
+	GetString(ctx context.Context, key string) (string, error)
+	GetBytes(ctx context.Context, key string) ([]byte, error)
 
+	MGet(ctx context.Context, keys []string) (*protocol.TypedArray, error)
 
-func (c *Client) CreateKeyspaceContext(ctx context.Context, name string) bool {
-    return false
-}
+	Set (ctx context.Context, key string, value any) error
+	
+	Update (ctx context.Context, key string, value any) error
+	UpdateString(ctx context.Context, key string, value string) error
+	UpdateBytes(ctx context.Context, key string, value []byte) error
 
+	Pop(ctx context.Context, key string) (response.ResponseEntry, error)
 
-func (c *Client) AuthLogin (username string, token string) error {
-	p := &QueryPacket{
-		queries:    []Query{
-			query.NewLogin(username, token),
-		},
-	}
+	Exec (ctx context.Context,packet *QueryPacket) ([]any, error)
+	ExecSingleRawQuery (segments ...string) (any, error)
+	ExecRawQuery (actions ...string) (any, error)
 
-	rp, err := c.ExecQuery(p)
-	if err != nil {
-		return fmt.Errorf("failed to execute auth: %w", err)
-	}
+	InspectKeyspaces (ctx context.Context) (protocol.Array, error)
+	ListAllKeyspaces (ctx context.Context) (protocol.Array, error)
 
-	err = rp.Err()
-	if err != nil {
-		return fmt.Errorf("error in response: %w", err)
-	}
+	// CreateKeyspace (ctx context.Context, name string) error
+	// DropKeyspace (ctx context.Context, name string) error
+	// UseKeyspace (ctx context.Context, name string) error
+	// InspectCurrentKeyspace (ctx context.Context) (protocol.Array, error)
+	// InspectKeyspace (ctx context.Context, name string) (protocol.Array, error)
 
-	switch code := rp.resps[0].(type) {
-	case protocol.ResponseCode:
-		switch code {
-		case protocol.Okay:
-			return nil
-		case protocol.BadCredentials:
-			return &ResponseErrorCode{ code }
-		default:
-			return ErrUnexpectedProtocol
-		}
-	default:
-		return ErrUnexpectedProtocol
-	}
-}
+	// CreateTable (ctx context.Context, name string, description any) error
+	// DropTable (ctx context.Context, name string) error
+	// UseTable (ctx context.Context, name string) error
+	// InspectCurrentTable (ctx context.Context) (interface{}, error)
+	// InspectTable (ctx context.Context, name string) (interface{}, error)
 
-
-func (c *Client) GetString (key string) (string, error) {
-	p := &QueryPacket{
-		queries:    []Query{
-			query.NewGet(key),
-		},
-	}
-
-	rp, err := c.ExecQuery(p)
-	if err != nil {
-		return "", err
-	}
-
-	err = rp.Err()
-	if err != nil {
-		return "", err
-	}
-
-	switch resp := rp.resps[0].(type) {
-	case string:
-		return resp, nil
-	case []byte:
-		return string(resp), nil
-	default:
-		return "", ErrUnexpectedProtocol
-	}
-}
-
-func (c *Client) ExecQuery (p *QueryPacket) (*ResponsePacket, error) {
-	str, err := c.BuildQuery(p)
-	if err != nil {
-		return nil, fmt.Errorf("failed to build query: %w", err)
-	}
-
-    log.Printf("    writing: %s", str)
-    log.Printf("    writing: %v", []byte(str))
-
-	_, err = c.netConn.Write([]byte(str))
-	if err != nil {
-		return nil, fmt.Errorf("failed to write to conn: %w", err)
-	}
-
-	resps, err := c.respReader.Read(c.netConn)
-	log.Printf("    resps: %v", resps)
-	if err != nil {
-		return &ResponsePacket{
-			query: p,
-			err: err,
-		}, fmt.Errorf("failed to read from conn: %w", err)
-	}
-
-	return &ResponsePacket{
-		query: p,
-		resps: resps,
-		err: err,
-	}, nil
+	// SysInfoVersion (ctx context.Context) (string, error)
+	SysInfoProtocol (ctx context.Context) (string, error)
+	// SysInfoProtover (ctx context.Context) (float64, error)
+	// SysMetricHealth (ctx context.Context) (string, error)
+	// SysMetricStorage (ctx context.Context) (uint64, error)
 }

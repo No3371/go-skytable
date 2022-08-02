@@ -191,14 +191,21 @@ func TestConnLocalSetSeqGet(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	c, err := skytable.NewConn(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)})
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	token, gotToken := GetTestToken()
 	if !gotToken {
 		t.Fatalf("failed to get token of '%s'", testUserName)
+	}
+
+    auth := func() (u, t string) {
+            u = testUserName
+            t = token
+            return u, t
+        }
+
+	c, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	err = c.AuthLogin(ctx, testUserName, token)
@@ -247,14 +254,21 @@ func TestConnLocalSetMGet(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	c, err := skytable.NewConn(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)})
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	token, gotToken := GetTestToken()
 	if !gotToken {
 		t.Fatalf("failed to get token of '%s'", testUserName)
+	}
+
+    auth := func() (u, t string) {
+            u = testUserName
+            t = token
+            return u, t
+        }
+
+	c, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	err = c.AuthLogin(ctx, testUserName, token)
@@ -327,16 +341,21 @@ func TestConnLocalSetMGet(t *testing.T) {
 func TestConnLocalExistsDelSetGet(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	c, err := skytable.NewConn(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	t.Log("Connected!")
-
+    
 	token, gotToken := GetTestToken()
 	if !gotToken {
 		t.Fatalf("failed to get token of '%s'", testUserName)
+	}
+
+    auth := func() (u, t string) {
+            u = testUserName
+            t = token
+            return u, t
+        }
+
+	c, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	err = c.AuthLogin(ctx, testUserName, token)

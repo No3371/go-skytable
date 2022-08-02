@@ -82,16 +82,15 @@ func (c *ConnPool) pushConn(conn *Conn) {
 }
 
 func (c *ConnPool) openConn() (conn *Conn, err error) {
-	conn, err = NewConn(c.remote)
-	if err != nil {
-		return nil, fmt.Errorf("conn pool failed to open new conn: %w", err)
-	}
-
 	if c.authProvider != nil {
-		u, t := c.authProvider()
-		err = conn.AuthLogin(context.Background(), u, t)
+		conn, err = NewConnAuth(c.remote, c.authProvider)
 		if err != nil {
-			return nil, fmt.Errorf("conn pool: conn: failed to auth login: %w", err)
+			return nil, fmt.Errorf("conn pool failed to open new conn: %w", err)
+		}
+	} else {
+		conn, err = NewConn(c.remote)
+		if err != nil {
+			return nil, fmt.Errorf("conn pool failed to open new conn: %w", err)
 		}
 	}
 

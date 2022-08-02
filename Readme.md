@@ -42,9 +42,21 @@ c := skytable.NewConnPool(localAddr, skytable.ConnPoolOptions{
 err := c.Set(ctx, "KEY", "VALUE")
 ```
 
-**Get a value
+**Get a value**
 ```go
 resp, err := c.Get(ctx, "KEY")
+```
+
+**Multi-actions query**
+```go
+p := skytable.NewQueryPacket(
+    []skytable.Action{
+        action.NewDel([]string { "KEY" }),
+        action.NewSet("KEY", "VALUE"),
+        action.NewGet("KEY"),
+})
+
+resp, err := c.BuildAndExecQuery(p)
 ```
 
 ## Implemented

@@ -27,11 +27,12 @@ type Conn struct {
 
 func (c *Conn) Close() {
 	close(c.closed)
+	c.netConn.Close()
 }
 
 func (c *Conn) errClose(err error) {
 	c.err = err
-	close(c.closed)
+	c.Close()
 }
 
 // Err() return an error if the conn is closed due to an error

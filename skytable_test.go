@@ -16,6 +16,7 @@ import (
 )
 
 const testUserName = "go-skytable-test"
+const NonAuthInstancePort = 2004
 
 func GetTestToken() (string, bool) {
 	token, foundToken := os.LookupEnv("GO_SKYTABLE_TEST_TOKEN")
@@ -36,6 +37,7 @@ func GetTestToken() (string, bool) {
 	log.Printf("Test user: %s %s", testUserName, read)
 	return string(read), true
 }
+
 
 func TestConnPoolLocalAuth(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -184,6 +186,17 @@ func TestConnLocalAuth(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestConnLocalAuthFail (t *testing.T) {    
+	c, err := skytable.NewConn(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(NonAuthInstancePort)})
+	if err == nil {
+		t.Fatal(err)
+	} else {
+        t.Log(err)
+    }
+
+    c.Close()
 }
 
 func TestConnLocalSetSeqGet(t *testing.T) {

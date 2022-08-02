@@ -130,6 +130,7 @@ func (c *Conn) Get(ctx context.Context, key string) (response.ResponseEntry, err
 	return rp.resps[0], nil
 }
 
+// GetBytes() is a strict version of GET that only success if the value is stored as String in Skytable. 
 func (c *Conn) GetString(ctx context.Context, key string) (string, error) {
 	rp, err := c.Get(ctx, key)
 	if err != nil {
@@ -146,6 +147,7 @@ func (c *Conn) GetString(ctx context.Context, key string) (string, error) {
 	}
 }
 
+// GetBytes() is a strict version of GET that only success if the value is stored as BinaryString in Skytable. 
 func (c *Conn) GetBytes(ctx context.Context, key string) ([]byte, error) {
 	rp, err := c.Get(ctx, key)
 	if err != nil {

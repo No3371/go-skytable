@@ -39,33 +39,33 @@ c := skytable.NewConnPool(localAddr, skytable.ConnPoolOptions{
 
 **Set a value**
 ```go
-err = c.Set(ctx, "KEY", "VALUE")
+err := c.Set(ctx, "KEY", "VALUE")
 ```
 
 **Get a value
 ```go
-
+resp, err := c.Get(ctx, "KEY")
 ```
 
 ## Implemented
 
 ### DataTypes
 
--[X] ResponseCode
--[X] Integer
--[X] SignedInteger
--[X] String
--[X] BinaryString
--[ ] SmallInteger
--[ ] SignedSmallInteger
--[ ] Float
--[ ] Json
+- [X] ResponseCode
+- [X] Integer
+- [X] SignedInteger
+- [X] String
+- [X] BinaryString
+- [ ] SmallInteger
+- [ ] SignedSmallInteger
+- [ ] Float
+- [ ] Json
 
--[X] TypedArray
--[ ] Array
--[ ] FlatArray
--[ ] AnyArray
--[ ] TypedNonNullArray
+- [X] TypedArray
+- [ ] Array
+- [ ] FlatArray
+- [ ] AnyArray
+- [ ] TypedNonNullArray
 
 ### Actions
 

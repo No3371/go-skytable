@@ -69,21 +69,21 @@ resp, err := c.Get(ctx, "KEY")
 
 ### Actions
 
--[X] AUTH LOGIN
--[X] GET
--[X] SET
--[X] UPDATE
--[X] MGET
--[X] DEL
--[X] EXISTS
--[X] HEYA
--[X] (RAW QUERY)
--[ ] POP
+- [X] AUTH LOGIN
+- [X] GET
+- [X] SET
+- [X] UPDATE
+- [X] MGET
+- [X] DEL
+- [X] EXISTS
+- [X] HEYA
+- [X] (RAW QUERY)
+- [ ] POP
 
--[X] SYS INFO VERSION
--[X] SYS INFO PROTOCOL
--[ ] SYS INFO PROTOVER
--[ ] SYS METRIC HEALTH
--[ ] SYS METRIC STORAGE
--[ ] (Keyspaces related)
--[ ] (Tables related)
+- [X] SYS INFO VERSION
+- [X] SYS INFO PROTOCOL
+- [ ] SYS INFO PROTOVER
+- [ ] SYS METRIC HEALTH
+- [ ] SYS METRIC STORAGE
+- [ ] (Keyspaces related)
+- [ ] (Tables related)

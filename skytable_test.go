@@ -316,10 +316,6 @@ func TestConnLocalSetMGet(t *testing.T) {
             t.Fatal(err)
         }
         t.Logf("Executing MGET (size: %d): %s", seq, time.Since(sTime))
-    
-        if rp.Err() != nil {
-            t.Fatal(rp.Err())
-        }
 
         if rp.Resps()[0].Err != nil {
             t.Fatal(rp.Resps()[0].Err)

@@ -30,12 +30,8 @@ type RawResponsePacket struct {
 type ResponsePacket struct {
 	query *QueryPacket
 	resps []response.ResponseEntry
-	err   error
 }
 
-func (rr ResponsePacket) Err() error {
-	return rr.err
-}
 
 func (rr ResponsePacket) Resps () []response.ResponseEntry {
 	return rr.resps

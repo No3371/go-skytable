@@ -169,10 +169,7 @@ func (c *Conn) ExecQuery(bq BuiltQuery) (*ResponsePacket, error) {
 	resps, err := c.respReader.Read(c.netConn)
 	if err != nil {
 		c.errClose(err)
-		return &ResponsePacket{
-			query: bq.QueryPacket,
-			err:   nil,
-		}, NewComuError("failed to read from conn", err)
+		return nil, NewComuError("failed to read from conn", err)
 	}
 
 	if len(bq.actions) != len(resps) {
@@ -188,7 +185,6 @@ func (c *Conn) ExecQuery(bq BuiltQuery) (*ResponsePacket, error) {
 	return &ResponsePacket{
 		query: bq.QueryPacket,
 		resps: resps,
-		err:   err,
 	}, nil
 }
 

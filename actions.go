@@ -23,10 +23,6 @@ func (c *Conn) Heya(ctx context.Context, echo string) error {
 		return err
 	}
 
-	if rp.Err() != nil {
-		return rp.Err()
-	}
-
 	if rp.resps[0].Err != nil {
 		return rp.resps[0].Err
 	}
@@ -45,10 +41,6 @@ func (c *Conn) AuthLogin(ctx context.Context, username string, token string) err
 	rp, err := c.BuildAndExecQuery(p)
 	if err != nil {
 		return err
-	}
-
-	if rp.Err() != nil {
-		return rp.Err()
 	}
 
 	if rp.resps[0].Err != nil {
@@ -83,10 +75,6 @@ func (c *Conn) Exists(ctx context.Context, keys []string) (uint64, error) {
 		return 0, err
 	}
 
-	if rp.Err() != nil {
-		return rp.resps[0].Value.(uint64), rp.Err()
-	}
-
 	return rp.resps[0].Value.(uint64), nil
 }
 
@@ -103,10 +91,6 @@ func (c *Conn) Del(ctx context.Context, keys []string) (uint64, error) {
 		return 0, err
 	}
 
-	if rp.Err() != nil {
-		return rp.resps[0].Value.(uint64), rp.Err()
-	}
-
 	return rp.resps[0].Value.(uint64), nil
 }
 
@@ -121,10 +105,6 @@ func (c *Conn) Get(ctx context.Context, key string) (response.ResponseEntry, err
 	rp, err := c.BuildAndExecQuery(p)
 	if err != nil {
 		return response.EmptyResponseEntry, err
-	}
-
-	if rp.Err() != nil {
-		return rp.resps[0], rp.Err()
 	}
 
 	return rp.resps[0], nil
@@ -177,10 +157,6 @@ func (c *Conn) MGet(ctx context.Context, keys []string) (*protocol.TypedArray, e
 		return nil, err
 	}
 
-	if rp.Err() != nil {
-		return rp.resps[0].Value.(*protocol.TypedArray), rp.Err()
-	}
-
 	return rp.resps[0].Value.(*protocol.TypedArray), nil
 }
 
@@ -195,10 +171,6 @@ func (c *Conn) Set(ctx context.Context, key string, value any) error {
 	rp, err := c.BuildAndExecQuery(p)
 	if err != nil {
 		return err
-	}
-
-	if rp.Err() != nil {
-		return rp.Err()
 	}
 
 	switch resp := rp.resps[0].Value.(type) {
@@ -230,10 +202,6 @@ func (c *Conn) Update(ctx context.Context, key string, value any) error {
 	rp, err := c.BuildAndExecQuery(p)
 	if err != nil {
 		return err
-	}
-
-	if rp.Err() != nil {
-		return rp.Err()
 	}
 
 	switch resp := rp.resps[0].Value.(type) {
@@ -272,10 +240,6 @@ func (c *Conn) Exec(ctx context.Context, packet *QueryPacket) ([]response.Respon
 	rp, err := c.BuildAndExecQuery(packet)
 	if err != nil {
 		return nil, err
-	}
-
-	if rp.Err() != nil {
-		return rp.resps, rp.Err()
 	}
 
 	return rp.resps, nil

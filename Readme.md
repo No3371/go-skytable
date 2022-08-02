@@ -95,6 +95,16 @@ resp, err := c.BuildAndExecQuery(p)
 ### Actions
 
 - [X] AUTH LOGIN
+- [ ] AUTH CLAIM
+- [ ] AUTH LOGOUT
+- [ ] AUTH ADDUSER
+- [ ] AUTH DELUSER
+- [ ] AUTH RESTORE
+- [ ] AUTH LISTUSER
+- [ ] AUTH WHOAMI
+
+- [X] (RAW QUERY)
+
 - [X] GET
 - [X] SET
 - [X] UPDATE
@@ -102,8 +112,25 @@ resp, err := c.BuildAndExecQuery(p)
 - [X] DEL
 - [X] EXISTS
 - [X] HEYA
-- [X] (RAW QUERY)
 - [ ] POP
+- [ ] MPOP
+- [ ] MSET
+- [ ] MUPDATE
+- [ ] SDEL
+- [ ] SSET
+- [ ] USET
+- [ ] LGET
+- [ ] LMOD
+- [ ] LGET
+- [ ] LSET
+- [ ] LSKEYS
+
+- [ ] DBSIZE
+- [ ] FLUSHDB
+- [ ] KEYLEN
+- [ ] WHEREAMI
+
+- [ ] MKSNAP
 
 - [X] SYS INFO VERSION
 - [X] SYS INFO PROTOCOL

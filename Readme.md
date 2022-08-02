@@ -2,6 +2,11 @@
 
 A Go driver of [Skytable](https://github.com/skytable/skytable).
 
+## Status
+
+The package implement Skyhash 1.1.
+Tested with: Skytable 0.7.5.
+
 ## Usage
 
 **Open single connection to a local Skytable instance**
@@ -61,6 +66,11 @@ resp, err := c.BuildAndExecQuery(p)
 
 ## Implemented
 
+### Mechanics
+
+- [ ] TLS
+- [ ] DDL (Keyspaces/Tables)
+
 ### DataTypes
 
 - [X] ResponseCode
@@ -97,5 +107,3 @@ resp, err := c.BuildAndExecQuery(p)
 - [ ] SYS INFO PROTOVER
 - [ ] SYS METRIC HEALTH
 - [ ] SYS METRIC STORAGE
-- [ ] (Keyspaces related)
-- [ ] (Tables related)

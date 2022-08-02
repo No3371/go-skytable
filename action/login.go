@@ -1,6 +1,7 @@
 package action
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/No3371/go-skytable/protocol"
@@ -36,9 +37,9 @@ func (q Login) ValidateProtocol(response interface{}) error {
 		case protocol.RespBadCredentials:
 			return nil
 		default:
-			return protocol.ErrUnexpectedProtocol
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("AUTH LOGIN: Unexpected response code: %s", response.String()), nil)
 		}
 	default:
-		return protocol.ErrUnexpectedProtocol
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("AUTH LOGIN: Unexpected response element: %v", response), nil)
 	}
 }

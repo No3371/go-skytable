@@ -11,12 +11,15 @@ import (
 
 const ProtoVer = "Skyhash-1.1"
 
-type Keyspace struct {
-}
-
 type QueryPacket struct {
 	ctx     context.Context
 	actions []Action
+}
+
+func NewQueryPacket (actions []Action) *QueryPacket {
+	return &QueryPacket{
+		actions: actions,
+	}
 }
 
 type RawResponsePacket struct {
@@ -34,6 +37,10 @@ func (rr ResponsePacket) Err() error {
 	return rr.err
 }
 
+func (rr ResponsePacket) Resps () []response.ResponseEntry {
+	return rr.resps
+}
+
 type Action interface {
 	AppendToPacket(builder *strings.Builder) error
 	ValidateProtocol(response interface{}) error
@@ -43,8 +50,8 @@ type STConn interface {
 	Heya (ctx context.Context, echo string) error
 	AuthLogin(ctx context.Context, username string, token string) error
 
-	Exists (keys []string) (uint64, error)
-	Del    (keys []string) (uint64, error)
+	Exists (ctx context.Context, keys []string) (uint64, error)
+	Del    (ctx context.Context, keys []string) (uint64, error)
 
 	Get(ctx context.Context, key string) (response.ResponseEntry, error)
 	GetString(ctx context.Context, key string) (string, error)
@@ -60,7 +67,7 @@ type STConn interface {
 
 	Pop(ctx context.Context, key string) (response.ResponseEntry, error)
 
-	Exec (ctx context.Context,packet *QueryPacket) ([]any, error)
+	Exec (ctx context.Context, packet *QueryPacket) ([]any, error)
 	ExecSingleRawQuery (segments ...string) (any, error)
 	ExecRawQuery (actions ...string) (any, error)
 

@@ -1,6 +1,7 @@
 package action
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/No3371/go-skytable/protocol"
@@ -29,11 +30,11 @@ func (q Heya) ValidateProtocol(response interface{}) error {
 	switch echo := response.(type) {
 	case string:
 		if (q.echo == "" && echo != "HEY!") || echo != q.echo {
-			return protocol.ErrUnexpectedProtocol
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("HEYA: unexpected echo: %s", response), nil)
 		} else {
 			return nil
 		}
 	default:
-		return protocol.ErrUnexpectedProtocol
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("HEYA: Unexpected response element: %v", response), nil)
 	}
 }

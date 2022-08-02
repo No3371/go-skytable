@@ -9,5 +9,7 @@ func (rr ResponseReader) readBinaryStringValue(bytes int64) ([]byte, error) {
 		return nil, err
 	}
 
+	rr.reader.ReadByte() // discard trailing \n
+
 	return str, nil
 }

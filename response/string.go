@@ -8,6 +8,8 @@ func (rr ResponseReader) readStringValue(bytes int64) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	
+	rr.reader.ReadByte() // discard trailing \n
 
 	return string(str), nil
 }

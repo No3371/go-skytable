@@ -72,7 +72,9 @@ func (rr ResponseReader) readMetaframe() (int64, error) {
 		return 0, ErrInvalidPacket
 	}
 
-	log.Printf("    metaframe: %v", read)
+	if DEBUG {
+		log.Printf("    metaframe: %v", read)
+	}
 
 	length, err := strconv.ParseInt(string(read[1:len(read)-1]), 10, 64)
 	if err != nil {
@@ -83,17 +85,57 @@ func (rr ResponseReader) readMetaframe() (int64, error) {
 }
 
 func (rr ResponseReader) readOneEntry() (dt protocol.DataType, v interface{}, err error) {
+	tByte, err := rr.reader.ReadByte()
+	if err != nil {
+		return 0, nil, err
+	}
+
 	read, err := rr.reader.ReadBytes('\n')
 	if err != nil {
 		return 0, nil, err
 	}
 
-	length, err := strconv.ParseInt(string(read[1:len(read)-1]), 10, 64)
-	if err != nil {
-		return 0, nil, err
+	dt = protocol.DataType(tByte)
+	length := int64(0)
+
+	switch dt {
+	case protocol.DataTypeString: // string
+	fallthrough
+	case protocol.DataTypeResponseCode: // resp code
+	fallthrough
+	case protocol.DataTypeBinaryString: // binary_string
+	fallthrough
+	case protocol.DataTypeJson: // json
+	fallthrough
+	case protocol.DataTypeSmallint: // uint8
+	fallthrough
+	case protocol.DataTypeSmallintSigned: // int8
+	fallthrough
+	case protocol.DataTypeInt: // uint64
+	fallthrough
+	case protocol.DataTypeIntSigned: // int64
+	fallthrough
+	case protocol.DataTypeFloat: // float32
+		length, err = strconv.ParseInt(string(read[:len(read)-1]), 10, 64)
+		if err != nil {
+			return 0, nil, err
+		}
+	// arrays
+	// case '&': // recursive array
+	// case '_': // flat (non-recursive) array
+	// case '~': // any array
+	case protocol.DataTypeTypedArray: // typed array
+	fallthrough
+	case protocol.DataTypeTypedNonNullArray: // typed non-null array
+		length, err = strconv.ParseInt(string(read[1:len(read)-1]), 10, 64)
+		if err != nil {
+			return 0, nil, err
+		}
+	default:
+		v, err = nil, ErrNotImplementedDataType
+		return dt, v, err
 	}
 
-	dt = protocol.DataType(read[0])
 
 	if DEBUG {
 		log.Printf("    type: %c, entry length: %d", dt, length)
@@ -110,14 +152,11 @@ func (rr ResponseReader) readOneEntry() (dt protocol.DataType, v interface{}, er
 		v, err = rr.readBinaryStringValue(length)
 		return dt, v, err
 	case protocol.DataTypeJson: // json
-		v, err = nil, ErrNotImplementedDataType
-		return dt, v, err
+		return dt, v, ErrNotImplementedDataType
 	case protocol.DataTypeSmallint: // uint8
-		v, err = nil, ErrNotImplementedDataType
-		return dt, v, err
+		return dt, v, ErrNotImplementedDataType
 	case protocol.DataTypeSmallintSigned: // int8
-		v, err = nil, ErrNotImplementedDataType
-		return dt, v, err
+		return dt, v, ErrNotImplementedDataType
 	case protocol.DataTypeInt: // uint64
 		v, err = rr.readUint64(length)
 		return dt, v, err
@@ -125,19 +164,88 @@ func (rr ResponseReader) readOneEntry() (dt protocol.DataType, v interface{}, er
 		v, err = rr.readInt64(length)
 		return dt, v, err
 	case protocol.DataTypeFloat: // float32
-		v, err = nil, ErrNotImplementedDataType
-		return dt, v, err
+		return dt, v, ErrNotImplementedDataType
 	// arrays
-	// case '&': // recursive array
-	// case '_': // flat (non-recursive) array
-	case '@': // typed array
-		v, err = rr.readTypedArray(protocol.SimpleType(read[1]), length)
+	case protocol.DataTypeArray: // recursive
+		return dt, v, ErrNotImplementedDataType
+	case protocol.DataTypeFlatArray:
+		return dt, v, ErrNotImplementedDataType
+	case protocol.DataTypeAnyArray:
+		return dt, v, ErrNotImplementedDataType
+	case protocol.DataTypeTypedArray:
+		v, err = rr.readTypedArray(protocol.SimpleType(read[0]), length)
 		return dt, v, err
-	// case '~': // any array
-	// case '^': // typed non-null array
+	case protocol.DataTypeTypedNonNullArray:
+		return dt, v, ErrNotImplementedDataType
 	default:
 		v, err = nil, ErrNotImplementedDataType
 		return dt, v, err
+	}
+}
+
+func (rr ResponseReader) readOneTypedEntry(dt protocol.DataType) (v interface{}, err error) {
+
+	read, err := rr.reader.ReadBytes('\n')
+	if err != nil {
+		return nil, err
+	}
+
+	if DEBUG {
+		log.Printf("    typed read: %v", read)
+	}
+
+	if read[0] == 0 && read[1] == '0' { // NULL
+		return nil, nil
+	}
+
+	length, err := strconv.ParseInt(string(read[:len(read)-1]), 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	if DEBUG {
+		log.Printf("    typed: %c, entry size: %d", dt, length)
+	}
+
+	switch dt {
+	case protocol.DataTypeString: // string
+		v, err = rr.readStringValue(length)
+		return v, err
+	case protocol.DataTypeResponseCode: // resp code
+		v, err = rr.readResponseCode(length)
+		return v, err
+	case protocol.DataTypeBinaryString: // binary_string
+		v, err = rr.readBinaryStringValue(length)
+		return v, err
+	case protocol.DataTypeJson: // json
+		return v, ErrNotImplementedDataType
+	case protocol.DataTypeSmallint: // uint8
+		return v, ErrNotImplementedDataType
+	case protocol.DataTypeSmallintSigned: // int8
+		return v, ErrNotImplementedDataType
+	case protocol.DataTypeInt: // uint64
+		v, err = rr.readUint64(length)
+		return v, err
+	case protocol.DataTypeIntSigned: // int64
+		v, err = rr.readInt64(length)
+		return v, err
+	case protocol.DataTypeFloat: // float32
+		return v, ErrNotImplementedDataType
+	// arrays
+	case protocol.DataTypeArray: // recursive
+		return v, ErrNotImplementedDataType
+	case protocol.DataTypeFlatArray:
+		return v, ErrNotImplementedDataType
+	case protocol.DataTypeAnyArray:
+		return v, ErrNotImplementedDataType
+	case protocol.DataTypeTypedArray:
+		v, err = rr.readTypedArray(protocol.SimpleType(read[0]), length)
+		return v, err
+	case protocol.DataTypeTypedNonNullArray:
+		return v, ErrNotImplementedDataType
+	default:
+		v, err = nil, ErrNotImplementedDataType
+		return v, err
 	}
 }
 

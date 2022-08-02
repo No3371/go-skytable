@@ -1,6 +1,7 @@
 package action
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/No3371/go-skytable/protocol"
@@ -30,13 +31,13 @@ func (q Get) ValidateProtocol(response interface{}) error {
 		case protocol.RespNil:
 			return nil
 		default:
-			return protocol.ErrUnexpectedProtocol
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("GET: Unexpected response element: %v", response), nil)
 		}
 	case string:
 		return nil
 	case []byte:
 		return nil
 	default:
-		return protocol.ErrUnexpectedProtocol
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("GET: Unexpected response element: %v", response), nil)
 	}
 }

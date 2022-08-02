@@ -1,12 +1,14 @@
 package skytable
 
 import (
+	"context"
 	"fmt"
 
 	"net"
 	"strings"
 	"time"
 
+	"github.com/No3371/go-skytable/protocol"
 	"github.com/No3371/go-skytable/response"
 )
 
@@ -22,6 +24,17 @@ type Conn struct {
 	err    error
 }
 
+
+func (c *Conn) Close() {
+	close(c.closed)
+}
+
+func (c *Conn) errClose(err error) {
+	c.err = err
+	close(c.closed)
+}
+
+// Err() return an error if the conn is closed due to an error
 func (c *Conn) Err() error {
 	return c.err
 }
@@ -33,7 +46,7 @@ func NewConn(remote *net.TCPAddr) (*Conn, error) {
 		return nil, err
 	}
 
-	return &Conn{
+	conn := &Conn{
 		createdAt: time.Now(),
 		usedAt:    time.Now(),
 		netConn:   nc,
@@ -41,16 +54,55 @@ func NewConn(remote *net.TCPAddr) (*Conn, error) {
 		strBuilder: &strings.Builder{},
 		respReader: response.NewResponseReader(),
 		closed:     make(chan struct{}),
-	}, nil
+	}
+
+	pv, err := conn.SysInfoProtocol(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("conn: failed to get protocol version: %w", err)
+	}
+
+	if pv != ProtoVer {
+		return nil, protocol.ErrProtocolVersion
+	}
+
+	return conn, nil
 }
 
-func (c *Conn) Close() {
-	close(c.closed)
-}
+func NewConnAuth(remote *net.TCPAddr, authProvider func() (username, token string)) (*Conn, error) {
 
-func (c *Conn) errClose(err error) {
-	c.err = err
-	close(c.closed)
+	nc, err := net.DialTCP("tcp", nil, remote)
+	if err != nil {
+		return nil, err
+	}
+
+	conn := &Conn{
+		createdAt: time.Now(),
+		usedAt:    time.Now(),
+		netConn:   nc,
+
+		strBuilder: &strings.Builder{},
+		respReader: response.NewResponseReader(),
+		closed:     make(chan struct{}),
+	}
+
+	if authProvider != nil {
+		u, t := authProvider()
+		err = conn.AuthLogin(context.Background(), u, t)
+		if err != nil {
+			return nil, fmt.Errorf("conn pool: conn: failed to auth login: %w", err)
+		}
+	}
+
+	pv, err := conn.SysInfoProtocol(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("conn: failed to get protocol version: %w", err)
+	}
+
+	if pv != ProtoVer {
+		return nil, protocol.ErrProtocolVersion
+	}
+
+	return conn, nil
 }
 
 func (c *Conn) BuildSingleRaw(segs ...string) (raw string, err error) {

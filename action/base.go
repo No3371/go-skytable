@@ -87,7 +87,7 @@ func AppendElement(v interface{}, builder *strings.Builder, typed bool) error {
 		builder.WriteByte('\n')
 	case *protocol.TypedArray:
 		if !typed {
-			return protocol.ErrUnexpectedProtocol
+			return protocol.NewUnexpectedProtocolError("Appending an array without type info", nil)
 		}
 
 		fmt.Fprintf(builder, "%c%c%d\n", v.ArrayType, v.ElementType, len(v.Elements))
@@ -102,7 +102,7 @@ func AppendElement(v interface{}, builder *strings.Builder, typed bool) error {
 		case protocol.CompoundTypeTypedNonNullArray:
 			for _, e := range v.Elements {
 				if e == nil {
-					return protocol.ErrUnexpectedProtocol // NON NULL
+					return protocol.NewUnexpectedProtocolError("Appending an nil element to non-null typed array ", nil) // NON NULL
 				}
 				err := AppendElement(e, builder, false)
 				if err != nil {
@@ -118,7 +118,7 @@ func AppendElement(v interface{}, builder *strings.Builder, typed bool) error {
 			if typed {
 				fmt.Fprintf(builder, "%c%d\n", protocol.DataTypeArray, len(v.Elements))
 			} else {
-				return protocol.ErrUnexpectedProtocol
+				return protocol.NewUnexpectedProtocolError("Appending an array without type info", nil)
 			}
 			for _, e := range v.Elements {
 				err := AppendElement(e, builder, true)
@@ -130,15 +130,15 @@ func AppendElement(v interface{}, builder *strings.Builder, typed bool) error {
 			if typed {
 				fmt.Fprintf(builder, "%c%d\n", protocol.CompoundTypeFlatArray, len(v.Elements))
 			} else {
-				return protocol.ErrUnexpectedProtocol
+				return protocol.NewUnexpectedProtocolError("Appending an array without type info", nil)
 			}
 
 			for _, e := range v.Elements {
 				switch e.(type) {
 				case protocol.Array:
-					return protocol.ErrUnexpectedProtocol
+					return protocol.NewUnexpectedProtocolError("Appending an flat-array containing another array", nil)
 				case protocol.TypedArray:
-					return protocol.ErrUnexpectedProtocol
+					return protocol.NewUnexpectedProtocolError("Appending an flat-array containing another array", nil)
 				}
 
 				err := AppendElement(e, builder, false)
@@ -153,12 +153,12 @@ func AppendElement(v interface{}, builder *strings.Builder, typed bool) error {
 			if typed {
 				fmt.Fprintf(builder, "%c%d\n", protocol.DataTypeAnyArray, len(v.Elements))
 			} else {
-				return protocol.ErrUnexpectedProtocol
+				return protocol.NewUnexpectedProtocolError("Appending an array without type info", nil)
 			}
 			for _, e := range v.Elements {
 				if e == nil {
 					// NON NULL
-					return protocol.ErrUnexpectedProtocol
+					return protocol.NewUnexpectedProtocolError("Appending an nil element to an any-array ", nil) // NON NULL
 				}
 				err := AppendElement(e, builder, false)
 				if err != nil {
@@ -170,7 +170,7 @@ func AppendElement(v interface{}, builder *strings.Builder, typed bool) error {
 			return protocol.ErrIncorrectArrayUsage
 		}
 	default:
-		return protocol.ErrUnexpectedProtocol
+		return protocol.NewUnexpectedProtocolError("Appending an unexpected element", nil)
 	}
 
 	return nil
@@ -190,7 +190,7 @@ func AppendArrayHeader(arrayType protocol.CompoundType, elementType protocol.Dat
 	case protocol.CompoundTypeTypedNonNullArray:
 		fmt.Fprintf(builder, "%c%d\n", protocol.DataTypeTypedNonNullArray, elementCount)
 	default:
-		return protocol.ErrUnexpectedProtocol
+		return protocol.NewUnexpectedProtocolError("Appending array header for an unexpected arrayType", nil)
 	}
 
 	return nil

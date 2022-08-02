@@ -1,7 +1,7 @@
 package action
 
 import (
-	"log"
+	"fmt"
 	"strings"
 
 	"github.com/No3371/go-skytable/protocol"
@@ -23,10 +23,7 @@ func (q Set) AppendToPacket(builder *strings.Builder) error {
 	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 3, builder)
 	AppendElement("SET", builder, false)
 	AppendElement(q.key, builder, false)
-	log.Printf("sending key length: %d", len(q.key))
 	AppendElement(q.value, builder, false)
-	log.Printf("sending value length: %d (string)", len(q.value.(string)))
-	log.Printf("sending value length: %d (bytes)", len([]byte(q.value.(string))))
 	return nil
 }
 
@@ -41,9 +38,9 @@ func (q Set) ValidateProtocol(response interface{}) error {
 		case protocol.RespServerError:
 			return nil
 		default:
-			return protocol.ErrUnexpectedProtocol
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("SET: Unexpected response code: %s", response.String()), nil)
 		}
 	default:
-		return protocol.ErrUnexpectedProtocol
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("SET: Unexpected response element: %v", response), nil)
 	}
 }

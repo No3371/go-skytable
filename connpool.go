@@ -25,7 +25,7 @@ type ConnPool struct {
 
 type ConnPoolOptions struct {
 	Cap          int64
-	AuthProvider func() (username, token string)
+	AuthProvider func() (username, token string) // Do not keep auth info in memory
 }
 
 var DefaultConnPoolOptions = ConnPoolOptions{
@@ -33,6 +33,10 @@ var DefaultConnPoolOptions = ConnPoolOptions{
 }
 
 func NewConnPool(remote *net.TCPAddr, opt ConnPoolOptions) *ConnPool {
+	if opt.Cap == 0 {
+		opt.Cap = int64(runtime.NumCPU()) * 2
+	}
+
 	return &ConnPool{
 		opened:       0,
 		cap:          opt.Cap,
@@ -40,6 +44,10 @@ func NewConnPool(remote *net.TCPAddr, opt ConnPoolOptions) *ConnPool {
 		remote:       remote,
 		authProvider: opt.AuthProvider,
 	}
+}
+
+func (c *ConnPool) OpenedConns() int64 {
+	return atomic.LoadInt64(&c.opened)
 }
 
 func (c *ConnPool) popConn() (conn *Conn, err error) {
@@ -121,24 +129,24 @@ func (c *ConnPool) AuthLogin(ctx context.Context, username string, token string)
 	return conn.AuthLogin(ctx, username, token)
 }
 
-func (c *ConnPool) Exists(keys []string) (uint64, error) {
+func (c *ConnPool) Exists(ctx context.Context, keys []string) (uint64, error) {
 	conn, err := c.popConn()
 	if err != nil {
 		return 0, err
 	}
 	defer c.pushConn(conn)
 
-	return conn.Exists(keys)
+	return conn.Exists(ctx, keys)
 }
 
-func (c *ConnPool) Del(keys []string) (uint64, error) {
+func (c *ConnPool) Del(ctx context.Context, keys []string) (uint64, error) {
 	conn, err := c.popConn()
 	if err != nil {
 		return 0, err
 	}
 	defer c.pushConn(conn)
 
-	return conn.Del(keys)
+	return conn.Del(ctx, keys)
 }
 
 func (c *ConnPool) Get(ctx context.Context, key string) (response.ResponseEntry, error) {
@@ -188,7 +196,7 @@ func (c *ConnPool) Set(ctx context.Context, key string, value any) error {
 	}
 	defer c.pushConn(conn)
 
-	return c.Set(ctx, key, value)
+	return conn.Set(ctx, key, value)
 }
 
 func (c *ConnPool) Update(ctx context.Context, key string, value any) error {
@@ -198,100 +206,92 @@ func (c *ConnPool) Update(ctx context.Context, key string, value any) error {
 	}
 	defer c.pushConn(conn)
 
-	return c.Update(ctx, key, value)
+	return conn.Update(ctx, key, value)
 }
 
-func (c *ConnPool) UpdateString(ctx context.Context, key string, value string) error {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) UpdateString(ctx context.Context, key string, value string) error {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) UpdateBytes(ctx context.Context, key string, value []byte) error {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) UpdateBytes(ctx context.Context, key string, value []byte) error {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) Pop(ctx context.Context, key string) (protocol.DataType, any, error) {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) Pop(ctx context.Context, key string) (protocol.DataType, any, error) {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) Exec(ctx context.Context, packet *QueryPacket) ([]any, error) {
-	panic("not implemented") // TODO: Implement
-}
-
-func (c *ConnPool) ExecSingleRawQuery(segments ...string) (any, error) {
+func (c *ConnPool) Exec(ctx context.Context, packet *QueryPacket) ([]response.ResponseEntry, error) {
 	conn, err := c.popConn()
 	if err != nil {
 		return nil, fmt.Errorf("get: conn pool: failed to get conn: %w", err)
 	}
 	defer c.pushConn(conn)
 
-	raw, err := conn.BuildSingleRaw(segments...)
+	return conn.Exec(ctx, packet)
+}
+
+func (c *ConnPool) ExecSingleRawQuery(segments ...string) (response.ResponseEntry, error) {
+	conn, err := c.popConn()
 	if err != nil {
-		return nil, err
+		return response.EmptyResponseEntry, fmt.Errorf("get: conn pool: failed to get conn: %w", err)
 	}
+	defer c.pushConn(conn)
 
-	rr, err := conn.ExecRaw([]byte(raw))
-	if err != nil {
-		return nil, err
-	}
-
-	if rr.err != nil {
-		return nil, err
-	}
-
-	return rr.resps[0], nil
+	return conn.ExecSingleRawQuery(segments...)
 }
 
-func (c *ConnPool) ExecRawQuery(actions ...string) (any, error) {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) ExecRawQuery(actions ...string) (any, error) {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) InspectKeyspaces(ctx context.Context) (protocol.Array, error) {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) InspectKeyspaces(ctx context.Context) (protocol.Array, error) {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) ListAllKeyspaces(ctx context.Context) (protocol.Array, error) {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) ListAllKeyspaces(ctx context.Context) (protocol.Array, error) {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) CreateKeyspace(ctx context.Context, name string) error {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) CreateKeyspace(ctx context.Context, name string) error {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) DropKeyspace(ctx context.Context, name string) error {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) DropKeyspace(ctx context.Context, name string) error {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) UseKeyspace(ctx context.Context, name string) error {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) UseKeyspace(ctx context.Context, name string) error {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) InspectCurrentKeyspace(ctx context.Context) (protocol.Array, error) {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) InspectCurrentKeyspace(ctx context.Context) (protocol.Array, error) {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) InspectKeyspace(ctx context.Context, name string) (protocol.Array, error) {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) InspectKeyspace(ctx context.Context, name string) (protocol.Array, error) {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) CreateTable(ctx context.Context, name string, description any) error {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) CreateTable(ctx context.Context, name string, description any) error {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) DropTable(ctx context.Context, name string) error {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) DropTable(ctx context.Context, name string) error {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) UseTable(ctx context.Context, name string) error {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) UseTable(ctx context.Context, name string) error {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) InspectCurrentTable(ctx context.Context) (interface{}, error) {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) InspectCurrentTable(ctx context.Context) (interface{}, error) {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) InspectTable(ctx context.Context, name string) (interface{}, error) {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) InspectTable(ctx context.Context, name string) (interface{}, error) {
+// 	panic("not implemented") // TODO: Implement
+// }
 
 func (c *ConnPool) SysInfoVersion(ctx context.Context) (string, error) {
 	conn, err := c.popConn()
@@ -313,14 +313,14 @@ func (c *ConnPool) SysInfoProtocol(ctx context.Context) (string, error) {
 	return conn.SysInfoProtocol(ctx)
 }
 
-func (c *ConnPool) SysInfoProtover(ctx context.Context) (float64, error) {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) SysInfoProtover(ctx context.Context) (float64, error) {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) SysMetricHealth(ctx context.Context) (string, error) {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) SysMetricHealth(ctx context.Context) (string, error) {
+// 	panic("not implemented") // TODO: Implement
+// }
 
-func (c *ConnPool) SysMetricStorage(ctx context.Context) (uint64, error) {
-	panic("not implemented") // TODO: Implement
-}
+// func (c *ConnPool) SysMetricStorage(ctx context.Context) (uint64, error) {
+// 	panic("not implemented") // TODO: Implement
+// }

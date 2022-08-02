@@ -1,6 +1,7 @@
 package action
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/No3371/go-skytable/protocol"
@@ -18,7 +19,7 @@ func NewMGet(keys []string) *MGet {
 
 func (q MGet) AppendToPacket(builder *strings.Builder) error {
 	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, len(q.keys) + 1, builder)
-	AppendElement("MGet", builder, false)
+	AppendElement("MGET", builder, false)
 	for _, k := range q.keys {
 		AppendElement(k, builder, false)
 	}
@@ -27,9 +28,9 @@ func (q MGet) AppendToPacket(builder *strings.Builder) error {
 
 func (q MGet) ValidateProtocol(response interface{}) error {
 	switch response.(type) {
-	case protocol.TypedArray:
+	case *protocol.TypedArray:
 		return nil
 	default:
-		return protocol.ErrUnexpectedProtocol
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("MGET: Unexpected response element: %v", response), nil)
 	}
 }

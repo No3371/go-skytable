@@ -5,7 +5,9 @@ A Go driver of [Skytable](https://github.com/skytable/skytable).
 ## Status
 
 The package implement Skyhash 1.1.
+
 Tested with: Skytable 0.7.5.
+
 No DDL supports yet so it can only works with `default:default` (keymap<string, binarystr>).
 
 ## Usage

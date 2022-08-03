@@ -10,6 +10,12 @@ Tested with: Skytable 0.7.5.
 
 No DDL supports yet so it can only works with `default:default` (keymap<string, binarystr>).
 
+## Installation
+
+```
+go get github.com/No3371/go-skytable
+```
+
 ## Usage
 
 **Open single connection to a local Skytable instance**

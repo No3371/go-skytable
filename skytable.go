@@ -24,7 +24,6 @@ func NewQueryPacket (actions []Action) *QueryPacket {
 
 type RawResponsePacket struct {
 	resps []response.ResponseEntry
-	err   error
 }
 
 type ResponsePacket struct {

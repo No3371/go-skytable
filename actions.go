@@ -256,10 +256,6 @@ func (c *Conn) ExecSingleRawQuery(segments ...string) (response.ResponseEntry, e
 		return response.EmptyResponseEntry, err
 	}
 
-	if rr.err != nil {
-		return rr.resps[0], err
-	}
-
 	return rr.resps[0], nil
 }
 
@@ -321,10 +317,6 @@ func (c *Conn) SysInfoVersion(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	if rp.err != nil {
-		return "", err
-	}
-
 	if rp.resps[0].DataType != protocol.DataTypeString {
 		return "", protocol.NewUnexpectedProtocolError(fmt.Sprintf("SysInfoVersion(): response is not string: %s", rp.resps[0].DataType.String()), nil)
 	}
@@ -335,10 +327,6 @@ func (c *Conn) SysInfoVersion(ctx context.Context) (string, error) {
 func (c *Conn) SysInfoProtocol(ctx context.Context) (string, error) {
 	rp, err := c.ExecRaw([]byte("*1\n~3\n3\nSYS\n4\nINFO\n8\nPROTOCOL\n"))
 	if err != nil {
-		return "", err
-	}
-
-	if rp.err != nil {
 		return "", err
 	}
 

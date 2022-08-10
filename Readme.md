@@ -1,6 +1,6 @@
 # go-skytable
 
-![](https://goreportcard.com/report/github.com/No3371/go-skytable)
+![](https://goreportcard.com/badge/github.com/No3371/go-skytable)
 
 A Go driver of [Skytable](https://github.com/skytable/skytable).
 

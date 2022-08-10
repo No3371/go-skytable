@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"math/rand"
 	"net"
 	"os"
 	"sync"
@@ -413,5 +414,69 @@ func TestConnLocalExistsDelSetGet(t *testing.T) {
 	t.Log("GET: " + string(respV))
 	if string(respV) != v {
 		t.Fail()
+	}
+}
+
+func TestBytes (t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+    
+	token, gotToken := GetTestToken()
+	if !gotToken {
+		t.Fatalf("failed to get token of '%s'", testUserName)
+	}
+
+    auth := func() (u, t string) {
+            u = testUserName
+            t = token
+            return u, t
+        }
+
+	c, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	k := "t1233 あ得"
+	v := make([]byte, 999)
+	for i := range v {
+		v[i] = byte(rand.Intn(256))
+	}
+
+	existed, err := c.Exists(ctx, []string{k})
+	if err != nil {
+		t.Fatal(err)
+	} else if existed > 0 {
+		deleted, err := c.Del(ctx, []string{k})
+		if err != nil {
+			t.Fatal(err)
+		} else if deleted != 1 {
+			t.Fatalf("Deleted %d, expecting %d", deleted, existed)
+		}
+	}
+
+	err = c.Set(ctx, k, v)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	get, err := c.Get(ctx, k)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if get.Err != nil {
+		t.Fatal(get.Err)
+	}
+
+	if get.DataType != protocol.DataTypeBinaryString {
+		t.Fatal("datatype mismatch")
+	}
+
+	getBytes := get.Value.([]byte)
+	for i := range getBytes {
+		if getBytes[i] != v[i] {
+			t.Fatalf("mismatch at #%d: %d/%d", i, getBytes[i], v[i])
+		}
 	}
 }

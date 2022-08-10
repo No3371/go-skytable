@@ -98,7 +98,7 @@ resp, err := c.BuildAndExecQuery(p)
 - [ ] Array
 - [ ] FlatArray
 - [ ] AnyArray
-- [ ] TypedNonNullArray
+- [X] TypedNonNullArray
 
 ### Actions
 
@@ -145,3 +145,15 @@ resp, err := c.BuildAndExecQuery(p)
 - [ ] SYS INFO PROTOVER
 - [ ] SYS METRIC HEALTH
 - [ ] SYS METRIC STORAGE
+
+## DDL Actions
+
+- [X] CREATE KEYSPACE
+- [ ] USE KEYSPACE
+- [ ] INSPECT KEYSPACE
+- [ ] DROP KEYSPACE
+
+- [X] CREATE TABLE
+- [ ] USE TABLE
+- [ ] INSPECT TABLE
+- [ ] DROP TABLE

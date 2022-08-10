@@ -299,6 +299,16 @@ func (c *ConnPool) ExecSingleRawQuery(segments ...string) (response.ResponseEntr
 // 	panic("not implemented") // TODO: Implement
 // }
 
+func (c *ConnPool) CreateKeyspace(ctx context.Context, path string) error {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return fmt.Errorf("create keyspace: conn pool: failed to get conn: %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.CreateKeyspace(ctx, path)
+}
+
 // func (c *ConnPool) DropKeyspace(ctx context.Context, name string) error {
 // 	panic("not implemented") // TODO: Implement
 // }

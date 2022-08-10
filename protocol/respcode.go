@@ -4,6 +4,8 @@ package protocol
 type ResponseCode int
 
 const (
+	RespErr			ResponseCode = -2     // NOTE: A package-customized value not defined in Skyhash. 
+	RespErrStr			ResponseCode = -1 // NOTE: A package-customized value not defined in Skyhash. 
 	RespOkay            ResponseCode = 0
 	RespNil             ResponseCode = 1
 	RespOverwriteError  ResponseCode = 2

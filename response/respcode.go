@@ -19,11 +19,11 @@ func (rr ResponseReader) readResponseCode(chars int64) (protocol.ResponseCode, e
 	if read[0] >= '0' && read[0] <= '9' {
 		i, err := strconv.ParseInt(string(read[:len(read)-1]), 10, 64)
 		if err != nil {
-			return -1, err
+			return protocol.RespErr, err
 		}
 
 		return protocol.ResponseCode(i), nil
 	} else {
-		return -1, protocol.NewServerErrorResponse(string(read[:len(read)-1]))
+		return protocol.RespErrStr, protocol.NewErrorStringResponse(string(read[:len(read)-1]))
 	}
 }

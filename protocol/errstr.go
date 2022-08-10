@@ -3,15 +3,19 @@ package protocol
 import "fmt"
 
 type ErrorStringResponse struct {
-	err string
+	Errstr string
 }
 
-func NewServerErrorResponse(err string) *ErrorStringResponse {
+func NewErrorStringResponse(err string) *ErrorStringResponse {
 	return &ErrorStringResponse{
-		err: err,
+		Errstr: err,
 	}
 }
 
 func (r ErrorStringResponse) Error() string {
-	return fmt.Sprintf("skytable response error string: %s", r.err)
+	return fmt.Sprintf("skytable response error string: %s", r.Errstr)
 }
+
+const (
+	ErrStr_ContainerNotFound string = "container-not-found"
+)

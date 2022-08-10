@@ -6,6 +6,7 @@ import (
 	"net"
 	"runtime"
 	"sync/atomic"
+	"time"
 
 	"github.com/No3371/go-skytable/protocol"
 	"github.com/No3371/go-skytable/response"
@@ -13,36 +14,31 @@ import (
 
 type ConnPool struct {
 	available chan *Conn
-
 	opened int64 // atomic
-	cap    int64
-
 	remote       *net.TCPAddr
-	authProvider func() (username, token string)
-
-	OnError func(err error)
+	opts ConnPoolOptions
 }
 
 type ConnPoolOptions struct {
 	Cap          int64
 	AuthProvider func() (username, token string) // Do not keep auth info in memory
+	DefaultEntity string // "KEYSPACE" or "KEYSPACE:CONTAINER"
 }
 
 var DefaultConnPoolOptions = ConnPoolOptions{
 	Cap: int64(runtime.NumCPU()) * 2,
 }
 
-func NewConnPool(remote *net.TCPAddr, opt ConnPoolOptions) *ConnPool {
-	if opt.Cap == 0 {
-		opt.Cap = int64(runtime.NumCPU()) * 2
+func NewConnPool(remote *net.TCPAddr, opts ConnPoolOptions) *ConnPool {
+	if opts.Cap == 0 {
+		opts.Cap = int64(runtime.NumCPU()) * 2
 	}
 
 	return &ConnPool{
 		opened:       0,
-		cap:          opt.Cap,
-		available:    make(chan *Conn, opt.Cap),
+		available:    make(chan *Conn, opts.Cap),
 		remote:       remote,
-		authProvider: opt.AuthProvider,
+		opts: opts,
 	}
 }
 
@@ -54,11 +50,12 @@ func (c *ConnPool) popConn(dontOpenNew bool) (conn *Conn, err error) {
 	if dontOpenNew {
 		return <-c.available, nil
 	}
+
 	select {
 	case conn = <-c.available:
 		return conn, nil
 	default:
-		if atomic.LoadInt64(&c.opened) < c.cap {
+		if atomic.LoadInt64(&c.opened) < c.opts.Cap {
 			return c.openConn()
 		} else {
 			conn = <-c.available
@@ -85,8 +82,8 @@ func (c *ConnPool) pushConn(conn *Conn) {
 }
 
 func (c *ConnPool) openConn() (conn *Conn, err error) {
-	if c.authProvider != nil {
-		conn, err = NewConnAuth(c.remote, c.authProvider)
+	if c.opts.AuthProvider != nil {
+		conn, err = NewConnAuth(c.remote, c.opts.AuthProvider)
 		if err != nil {
 			return nil, fmt.Errorf("conn pool failed to open new conn: %w", err)
 		}
@@ -104,6 +101,13 @@ func (c *ConnPool) openConn() (conn *Conn, err error) {
 
 	if pv != ProtoVer {
 		return nil, protocol.ErrProtocolVersion
+	}
+
+	if c.opts.DefaultEntity != "" {
+		err = conn.Use(context.Background(), c.opts.DefaultEntity)
+		if err != nil {
+			return nil, fmt.Errorf("conn pool: conn: failed to USE default entity: %w", err)
+		}
 	}
 
 
@@ -146,6 +150,7 @@ func (c *ConnPool) DoEachConn(action func (conn *Conn) error) error {
 
 	return nil
 }
+
 func (c *ConnPool) Heya(ctx context.Context, echo string) (err error) {
 	conn, err := c.popConn(false)
 	if err != nil {

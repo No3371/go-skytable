@@ -13,7 +13,7 @@ import (
 )
 
 type Conn struct {
-	createdAt time.Time
+	openedAt time.Time
 	usedAt    time.Time
 	netConn   net.Conn
 
@@ -22,6 +22,14 @@ type Conn struct {
 
 	closed chan struct{}
 	err    error
+}
+
+func (c Conn) OpenedAt () time.Time {
+	return c.openedAt
+}
+
+func (c Conn) UsedAt () time.Time {
+	return c.usedAt
 }
 
 
@@ -48,7 +56,7 @@ func NewConn(remote *net.TCPAddr) (*Conn, error) {
 	}
 
 	conn := &Conn{
-		createdAt: time.Now(),
+		openedAt: time.Now(),
 		usedAt:    time.Now(),
 		netConn:   nc,
 
@@ -77,7 +85,7 @@ func NewConnAuth(remote *net.TCPAddr, authProvider func() (username, token strin
 	}
 
 	conn := &Conn{
-		createdAt: time.Now(),
+		openedAt: time.Now(),
 		usedAt:    time.Now(),
 		netConn:   nc,
 
@@ -127,7 +135,7 @@ func (c *Conn) BuildSingleRaw(segs ...string) (raw string, err error) {
 func (c *Conn) ExecRaw(query []byte) (*RawResponsePacket, error) {
 	select {
 	case <-c.closed:
-		return nil, NewUsageError("the conn is already closed: ", c.err)
+		return nil, NewUsageError("the conn is already closed.", c.err)
 	default:
 	}
 
@@ -143,9 +151,10 @@ func (c *Conn) ExecRaw(query []byte) (*RawResponsePacket, error) {
 		return nil, NewComuError("failed to read from conn", err)
 	}
 
+	c.usedAt = time.Now()
+
 	return &RawResponsePacket{
 		resps: resps,
-		err:   err,
 	}, nil
 }
 
@@ -157,7 +166,7 @@ type BuiltQuery struct {
 func (c *Conn) ExecQuery(bq BuiltQuery) (*ResponsePacket, error) {
 	select {
 	case <-c.closed:
-		return nil, NewUsageError("the conn is already closed: ", c.err)
+		return nil, NewUsageError("the conn is already closed.", c.err)
 	default:
 	}
 
@@ -182,6 +191,8 @@ func (c *Conn) ExecQuery(bq BuiltQuery) (*ResponsePacket, error) {
 			resps[i].Err = protoErr
 		}
 	}
+
+	c.usedAt = time.Now()
 
 	return &ResponsePacket{
 		query: bq.QueryPacket,
@@ -211,6 +222,8 @@ func (c *Conn) BuildQuery(p *QueryPacket) (BuiltQuery, error) {
 		q.AppendToPacket(c.strBuilder)
 	}
 
+	c.usedAt = time.Now()
+
 	return BuiltQuery{p, c.strBuilder.String()}, nil
 }
 
@@ -230,6 +243,8 @@ func (c *Conn) BuildAndExecQuery(p *QueryPacket) (*ResponsePacket, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed execution: %w", err)
 	}
+
+	c.usedAt = time.Now()
 
 	return rp, nil
 }

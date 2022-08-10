@@ -50,7 +50,10 @@ func (c *ConnPool) OpenedConns() int64 {
 	return atomic.LoadInt64(&c.opened)
 }
 
-func (c *ConnPool) popConn() (conn *Conn, err error) {
+func (c *ConnPool) popConn(dontOpenNew bool) (conn *Conn, err error) {
+	if dontOpenNew {
+		return <-c.available, nil
+	}
 	select {
 	case conn = <-c.available:
 		return conn, nil
@@ -109,7 +112,7 @@ func (c *ConnPool) openConn() (conn *Conn, err error) {
 }
 
 func (c *ConnPool) Heya(ctx context.Context, echo string) (err error) {
-	conn, err := c.popConn()
+	conn, err := c.popConn(false)
 	if err != nil {
 		return err
 	}
@@ -119,7 +122,7 @@ func (c *ConnPool) Heya(ctx context.Context, echo string) (err error) {
 }
 
 func (c *ConnPool) AuthLogin(ctx context.Context, username string, token string) error {
-	conn, err := c.popConn()
+	conn, err := c.popConn(false)
 	if err != nil {
 		return err
 	}
@@ -129,7 +132,7 @@ func (c *ConnPool) AuthLogin(ctx context.Context, username string, token string)
 }
 
 func (c *ConnPool) Exists(ctx context.Context, keys []string) (uint64, error) {
-	conn, err := c.popConn()
+	conn, err := c.popConn(false)
 	if err != nil {
 		return 0, err
 	}
@@ -139,7 +142,7 @@ func (c *ConnPool) Exists(ctx context.Context, keys []string) (uint64, error) {
 }
 
 func (c *ConnPool) Del(ctx context.Context, keys []string) (uint64, error) {
-	conn, err := c.popConn()
+	conn, err := c.popConn(false)
 	if err != nil {
 		return 0, err
 	}
@@ -149,7 +152,7 @@ func (c *ConnPool) Del(ctx context.Context, keys []string) (uint64, error) {
 }
 
 func (c *ConnPool) Get(ctx context.Context, key string) (response.ResponseEntry, error) {
-	conn, err := c.popConn()
+	conn, err := c.popConn(false)
 	if err != nil {
 		return response.EmptyResponseEntry, err
 	}
@@ -159,7 +162,7 @@ func (c *ConnPool) Get(ctx context.Context, key string) (response.ResponseEntry,
 }
 
 func (c *ConnPool) GetString(ctx context.Context, key string) (string, error) {
-	conn, err := c.popConn()
+	conn, err := c.popConn(false)
 	if err != nil {
 		return "", err
 	}
@@ -169,7 +172,7 @@ func (c *ConnPool) GetString(ctx context.Context, key string) (string, error) {
 }
 
 func (c *ConnPool) GetBytes(ctx context.Context, key string) ([]byte, error) {
-	conn, err := c.popConn()
+	conn, err := c.popConn(false)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +182,7 @@ func (c *ConnPool) GetBytes(ctx context.Context, key string) ([]byte, error) {
 }
 
 func (c *ConnPool) MGet(ctx context.Context, keys []string) (*protocol.TypedArray, error) {
-	conn, err := c.popConn()
+	conn, err := c.popConn(false)
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +192,7 @@ func (c *ConnPool) MGet(ctx context.Context, keys []string) (*protocol.TypedArra
 }
 
 func (c *ConnPool) Set(ctx context.Context, key string, value any) error {
-	conn, err := c.popConn()
+	conn, err := c.popConn(false)
 	if err != nil {
 		return err
 	}
@@ -199,7 +202,7 @@ func (c *ConnPool) Set(ctx context.Context, key string, value any) error {
 }
 
 func (c *ConnPool) Update(ctx context.Context, key string, value any) error {
-	conn, err := c.popConn()
+	conn, err := c.popConn(false)
 	if err != nil {
 		return err
 	}
@@ -221,7 +224,7 @@ func (c *ConnPool) Update(ctx context.Context, key string, value any) error {
 // }
 
 func (c *ConnPool) Exec(ctx context.Context, packet *QueryPacket) ([]response.ResponseEntry, error) {
-	conn, err := c.popConn()
+	conn, err := c.popConn(false)
 	if err != nil {
 		return nil, fmt.Errorf("get: conn pool: failed to get conn: %w", err)
 	}
@@ -231,7 +234,7 @@ func (c *ConnPool) Exec(ctx context.Context, packet *QueryPacket) ([]response.Re
 }
 
 func (c *ConnPool) ExecSingleRawQuery(segments ...string) (response.ResponseEntry, error) {
-	conn, err := c.popConn()
+	conn, err := c.popConn(false)
 	if err != nil {
 		return response.EmptyResponseEntry, fmt.Errorf("get: conn pool: failed to get conn: %w", err)
 	}
@@ -293,7 +296,7 @@ func (c *ConnPool) ExecSingleRawQuery(segments ...string) (response.ResponseEntr
 // }
 
 func (c *ConnPool) SysInfoVersion(ctx context.Context) (string, error) {
-	conn, err := c.popConn()
+	conn, err := c.popConn(false)
 	if err != nil {
 		return "", fmt.Errorf("get: conn pool: failed to get conn: %w", err)
 	}
@@ -303,7 +306,7 @@ func (c *ConnPool) SysInfoVersion(ctx context.Context) (string, error) {
 }
 
 func (c *ConnPool) SysInfoProtocol(ctx context.Context) (string, error) {
-	conn, err := c.popConn()
+	conn, err := c.popConn(false)
 	if err != nil {
 		return "", fmt.Errorf("get: conn pool: failed to get conn: %w", err)
 	}

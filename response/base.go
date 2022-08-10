@@ -164,7 +164,8 @@ func (rr ResponseReader) readOneEntry() (dt protocol.DataType, v interface{}, er
 		v, err = rr.readInt64(length)
 		return dt, v, err
 	case protocol.DataTypeFloat: // float32
-		return dt, v, ErrNotImplementedDataType
+		v, err = rr.readFloat32(length)
+		return dt, v, err
 	// arrays
 	case protocol.DataTypeArray: // recursive
 		return dt, v, ErrNotImplementedDataType
@@ -176,7 +177,8 @@ func (rr ResponseReader) readOneEntry() (dt protocol.DataType, v interface{}, er
 		v, err = rr.readTypedArray(protocol.SimpleType(read[0]), length)
 		return dt, v, err
 	case protocol.DataTypeTypedNonNullArray:
-		return dt, v, ErrNotImplementedDataType
+		v, err = rr.readTypedNonNullArray(protocol.SimpleType(read[0]), length)
+		return dt, v, err
 	default:
 		v, err = nil, ErrNotImplementedDataType
 		return dt, v, err

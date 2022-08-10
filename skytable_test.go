@@ -262,6 +262,56 @@ func TestConnLocalSetSeqGet(t *testing.T) {
     }
 }
 
+func TestDelSetGetSinglePacket(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	token, gotToken := GetTestToken()
+	if !gotToken {
+		t.Fatalf("failed to get token of '%s'", testUserName)
+	}
+
+    auth := func() (u, t string) {
+            u = testUserName
+            t = token
+            return u, t
+        }
+
+	c, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.AuthLogin(ctx, testUserName, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	k := "t1233 あ得"
+	v := "り8しれ 工さ小"
+
+	p := skytable.NewQueryPacket([]skytable.Action {
+		action.NewDel([]string { k }),
+		action.NewSet(k, v),
+		action.NewGet(k),
+	})
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resps := rp.Resps()
+	if resps[1].Value != protocol.RespOkay {
+		t.Fatalf("expecting Okay but get %v", resps[1].Value)
+	}
+	if resps[2].DataType != protocol.DataTypeBinaryString {
+		t.Fatalf("expecting BinaryString but it's %v", resps[2].Value)
+	}
+	if string(resps[2].Value.([]byte)) != v {
+		t.Fatalf("expecting getting %s but got %v", v, string(resps[2].Value.([]byte)))
+	}
+}
 
 func TestConnLocalSetMGet(t *testing.T) {
     seqSize := []int { 64, 512, 1024, 4096 }

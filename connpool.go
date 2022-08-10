@@ -111,6 +111,41 @@ func (c *ConnPool) openConn() (conn *Conn, err error) {
 	return conn, nil
 }
 
+// DoEachConn execute the supplied func for every conn opened before the call.
+// If an error is returned, the iteration may be incomplete.
+func (c *ConnPool) DoEachConn(action func (conn *Conn) error) error {
+	t := time.Now()
+	ited := 0
+	conns := make([]*Conn, 0, c.OpenedConns())
+	defer func () {
+		for _, conn := range conns {
+			c.pushConn(conn)
+		}
+	} ()
+
+	for ; ited < int(c.OpenedConns()); {
+
+		conn, err := c.popConn(true)
+		if err != nil {
+			return err
+		}
+
+		if conn.openedAt.After(t) {
+			continue
+		}
+
+		err = action(conn)
+		if err != nil {
+			return err
+		}
+
+		ited++
+		conns = append(conns, conn)
+	}
+
+
+	return nil
+}
 func (c *ConnPool) Heya(ctx context.Context, echo string) (err error) {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -263,9 +298,12 @@ func (c *ConnPool) ExecSingleRawQuery(segments ...string) (response.ResponseEntr
 // 	panic("not implemented") // TODO: Implement
 // }
 
-// func (c *ConnPool) UseKeyspace(ctx context.Context, name string) error {
-// 	panic("not implemented") // TODO: Implement
-// }
+// Use will take all conns and do *conn.Use() on each.
+func (c *ConnPool) Use(ctx context.Context, path string) error {
+	return c.DoEachConn(func(conn *Conn) error {
+		return conn.Use(ctx, path)
+	})
+}
 
 // func (c *ConnPool) InspectCurrentKeyspace(ctx context.Context) (protocol.Array, error) {
 // 	panic("not implemented") // TODO: Implement

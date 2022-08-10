@@ -279,9 +279,29 @@ func (c *Conn) ExecSingleRawQuery(segments ...string) (response.ResponseEntry, e
 // 	panic("not implemented") // TODO: Implement
 // }
 
-// func (c *Conn) UseKeyspace(ctx context.Context, name string) error {
-// 	panic("not implemented") // TODO: Implement
-// }
+func (c *Conn) Use(ctx context.Context, path string) error {
+	cmd := action.FormatUse(path)
+	rp, err := c.ExecRaw([]byte(cmd))
+	if err != nil {
+		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespOkay:
+			return nil
+		default:
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("Update(): Unexpected response code: %s", resp), nil)
+		}
+	}
+
+	return nil
+}
 
 // func (c *Conn) InspectCurrentKeyspace(ctx context.Context) (protocol.Array, error) {
 // 	panic("not implemented") // TODO: Implement

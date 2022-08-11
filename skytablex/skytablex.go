@@ -15,7 +15,7 @@ import (
 func GetWithSimTTL(c *skytable.Conn, ctx context.Context, key string) (resp any, tsUnix time.Time, err error) {
 	p := skytable.NewQueryPacket( []skytable.Action {
 		action.NewGet(key),
-		action.NewGet(key + ".timestamp"),
+		action.NewGet(key + "_timestamp"),
 	})
 
 	rp, err := c.BuildAndExecQuery(p)
@@ -44,7 +44,7 @@ func SetWithSimTTL(c *skytable.Conn, ctx context.Context, key string, value any)
 
 	p := skytable.NewQueryPacket( []skytable.Action {
 		action.NewSet(key, value),
-		action.NewSet(key + ".timestamp", ts),
+		action.NewSet(key + "_timestamp", ts),
 	})
 
 	rp, err := c.BuildAndExecQuery(p)
@@ -96,7 +96,7 @@ func UpdateWithSimTTL(c *skytable.Conn, ctx context.Context, key string, value a
 
 	p := skytable.NewQueryPacket( []skytable.Action {
 		action.NewUpdate(key, value),
-		action.NewUpdate(key + ".timestamp", ts),
+		action.NewUpdate(key + "_timestamp", ts),
 	})
 
 	rp, err := c.BuildAndExecQuery(p)

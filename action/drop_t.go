@@ -9,12 +9,12 @@ import (
 )
 
 type DropTable struct {
-	path string
+	Path string
 }
 
 func NewDropTable(path string) *DropTable {
 	return &DropTable{
-		path: path,
+		Path: path,
 	}
 }
 
@@ -23,14 +23,14 @@ func FormatSingleDropTablePacket (path string) string {
 }
 
 func (q DropTable) AppendToPacket(builder *strings.Builder) error {
-	if !strings.Contains(q.path, ":") {
+	if !strings.Contains(q.Path, ":") {
 		return errors.New("use explicit full path to the table to drop it (keyspace:table)")
 	}
 
 	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 3, builder)
 	AppendElement("DROP", builder, false)
 	AppendElement("TABLE", builder, false)
-	AppendElement(q.path, builder, false)
+	AppendElement(q.Path, builder, false)
 	return nil
 }
 

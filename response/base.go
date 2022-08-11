@@ -26,6 +26,19 @@ var EmptyResponseEntry ResponseEntry = ResponseEntry{
 	protocol.DataTypeUnknown, nil, nil,
 }
 
+type ResponseEntryTypedWrapper[T any] struct {
+	ResponseEntry
+}
+
+func (w ResponseEntryTypedWrapper[T]) Get () (T, error) {
+	t, casted := w.ResponseEntry.Value.(T)
+	if !casted {
+		return t, errors.New("wrapped value can't be casted to the type")
+	} else {
+		return t, nil
+	}
+}
+
 type ResponseReader struct {
 	reader *bufio.Reader
 }

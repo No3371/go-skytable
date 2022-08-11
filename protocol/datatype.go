@@ -22,6 +22,23 @@ const (
 	DataTypeTypedNonNullArray DataType = '^'
 )
 
+func (dt DataType) IsCompoundType () bool {
+	switch CompoundType(dt) {
+	case CompoundTypeArray:
+	fallthrough
+	case CompoundTypeFlatArray:
+	fallthrough
+	case CompoundTypeAnyArray:
+	fallthrough
+	case CompoundTypeTypedArray:
+	fallthrough
+	case CompoundTypeTypedNonNullArray:
+		return true
+	default:
+		return false
+	}
+}
+
 //go:generate stringer -type=SimpleType
 type SimpleType byte
 

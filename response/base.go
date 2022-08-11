@@ -30,7 +30,7 @@ type ResponseEntryTypedWrapper[T any] struct {
 	ResponseEntry
 }
 
-func (w ResponseEntryTypedWrapper[T]) Get () (T, error) {
+func (w ResponseEntryTypedWrapper[T]) Get() (T, error) {
 	t, casted := w.ResponseEntry.Value.(T)
 	if !casted {
 		return t, errors.New("wrapped value can't be casted to the type")
@@ -113,38 +113,39 @@ func (rr ResponseReader) readOneEntry() (dt protocol.DataType, v interface{}, er
 	}
 
 	dt = protocol.DataType(tByte)
-	length := int64(0)
+	size := int64(0)
 
 	switch dt {
 	case protocol.DataTypeString: // string
-	fallthrough
+		fallthrough
 	case protocol.DataTypeResponseCode: // resp code
-	fallthrough
+		fallthrough
 	case protocol.DataTypeBinaryString: // binary_string
-	fallthrough
+		fallthrough
 	case protocol.DataTypeJson: // json
-	fallthrough
+		fallthrough
 	case protocol.DataTypeSmallint: // uint8
-	fallthrough
+		fallthrough
 	case protocol.DataTypeSmallintSigned: // int8
-	fallthrough
+		fallthrough
 	case protocol.DataTypeInt: // uint64
-	fallthrough
+		fallthrough
 	case protocol.DataTypeIntSigned: // int64
-	fallthrough
+		fallthrough
 	case protocol.DataTypeFloat: // float32
-		length, err = strconv.ParseInt(string(read[:len(read)-1]), 10, 64)
+		fallthrough
+	// arrays
+	// case '&': // recursive array
+	case protocol.DataTypeFlatArray: // flat (non-recursive) array
+		size, err = strconv.ParseInt(string(read[:len(read)-1]), 10, 64)
 		if err != nil {
 			return 0, nil, err
 		}
-	// arrays
-	// case '&': // recursive array
-	// case '_': // flat (non-recursive) array
 	// case '~': // any array
 	case protocol.DataTypeTypedArray: // typed array
-	fallthrough
+		fallthrough
 	case protocol.DataTypeTypedNonNullArray: // typed non-null array
-		length, err = strconv.ParseInt(string(read[1:len(read)-1]), 10, 64)
+		size, err = strconv.ParseInt(string(read[1:len(read)-1]), 10, 64)
 		if err != nil {
 			return 0, nil, err
 		}
@@ -153,20 +154,19 @@ func (rr ResponseReader) readOneEntry() (dt protocol.DataType, v interface{}, er
 		return dt, v, err
 	}
 
-
 	if DEBUG {
-		log.Printf("    type: %c, entry length: %d", dt, length)
+		log.Printf("    read type: %c, entry size: %d", dt, size)
 	}
 
 	switch dt {
 	case protocol.DataTypeString: // string
-		v, err = rr.readStringValue(length)
+		v, err = rr.readStringValue(size)
 		return dt, v, err
 	case protocol.DataTypeResponseCode: // resp code
-		v, err = rr.readResponseCode(length)
+		v, err = rr.readResponseCode(size)
 		return dt, v, err
 	case protocol.DataTypeBinaryString: // binary_string
-		v, err = rr.readBinaryStringValue(length)
+		v, err = rr.readBinaryStringValue(size)
 		return dt, v, err
 	case protocol.DataTypeJson: // json
 		return dt, v, ErrNotImplementedDataType
@@ -175,26 +175,27 @@ func (rr ResponseReader) readOneEntry() (dt protocol.DataType, v interface{}, er
 	case protocol.DataTypeSmallintSigned: // int8
 		return dt, v, ErrNotImplementedDataType
 	case protocol.DataTypeInt: // uint64
-		v, err = rr.readUint64(length)
+		v, err = rr.readUint64(size)
 		return dt, v, err
 	case protocol.DataTypeIntSigned: // int64
-		v, err = rr.readInt64(length)
+		v, err = rr.readInt64(size)
 		return dt, v, err
 	case protocol.DataTypeFloat: // float32
-		v, err = rr.readFloat32(length)
+		v, err = rr.readFloat32(size)
 		return dt, v, err
 	// arrays
 	case protocol.DataTypeArray: // recursive
 		return dt, v, ErrNotImplementedDataType
 	case protocol.DataTypeFlatArray:
-		return dt, v, ErrNotImplementedDataType
+		v, err = rr.readFlatArray(size)
+		return dt, v, err
 	case protocol.DataTypeAnyArray:
 		return dt, v, ErrNotImplementedDataType
 	case protocol.DataTypeTypedArray:
-		v, err = rr.readTypedArray(protocol.SimpleType(read[0]), length)
+		v, err = rr.readTypedArray(protocol.SimpleType(read[0]), size)
 		return dt, v, err
 	case protocol.DataTypeTypedNonNullArray:
-		v, err = rr.readTypedNonNullArray(protocol.SimpleType(read[0]), length)
+		v, err = rr.readTypedNonNullArray(protocol.SimpleType(read[0]), size)
 		return dt, v, err
 	default:
 		v, err = nil, ErrNotImplementedDataType
@@ -202,7 +203,7 @@ func (rr ResponseReader) readOneEntry() (dt protocol.DataType, v interface{}, er
 	}
 }
 
-func (rr ResponseReader) readOneTypedEntry(dt protocol.DataType) (v interface{}, err error) {
+func (rr ResponseReader) readOneEntryTyped(dt protocol.DataType) (v interface{}, err error) {
 
 	read, err := rr.reader.ReadBytes('\n')
 	if err != nil {
@@ -249,33 +250,36 @@ func (rr ResponseReader) readOneTypedEntry(dt protocol.DataType) (v interface{},
 		v, err = rr.readInt64(length)
 		return v, err
 	case protocol.DataTypeFloat: // float32
-		return v, ErrNotImplementedDataType
+		v, err = rr.readFloat32(length)
+		return v, err
 	// arrays
 	case protocol.DataTypeArray: // recursive
 		return v, ErrNotImplementedDataType
 	case protocol.DataTypeFlatArray:
-		return v, ErrNotImplementedDataType
+		v, err = rr.readFlatArray(length)
+		return v, err
 	case protocol.DataTypeAnyArray:
 		return v, ErrNotImplementedDataType
 	case protocol.DataTypeTypedArray:
 		v, err = rr.readTypedArray(protocol.SimpleType(read[0]), length)
 		return v, err
 	case protocol.DataTypeTypedNonNullArray:
-		return v, ErrNotImplementedDataType
+		v, err = rr.readTypedNonNullArray(protocol.SimpleType(read[0]), length)
+		return v, err
 	default:
 		v, err = nil, ErrNotImplementedDataType
 		return v, err
 	}
 }
 
-func (rr ResponseReader) ReadSimpleType(t protocol.SimpleType, length int64) (interface{}, error) {
+func (rr ResponseReader) ReadSimpleType(t protocol.SimpleType, size int64) (interface{}, error) {
 	switch t {
 	case protocol.SimpleTypeString: // string
-		return rr.readStringValue(length)
+		return rr.readStringValue(size)
 	case protocol.SimpleTypeResponseCode: // resp code
-		return rr.readResponseCode(length)
+		return rr.readResponseCode(size)
 	case protocol.SimpleTypeBinaryString: // binary_string
-		return rr.readBinaryStringValue(length)
+		return rr.readBinaryStringValue(size)
 	case protocol.SimpleTypeJson: // json
 		return nil, ErrNotImplementedDataType
 	case protocol.SimpleTypeSmallint: // uint8
@@ -283,11 +287,11 @@ func (rr ResponseReader) ReadSimpleType(t protocol.SimpleType, length int64) (in
 	case protocol.SimpleTypeSmallintSigned: // int8
 		return nil, ErrNotImplementedDataType
 	case protocol.SimpleTypeInt: // uint64
-		return rr.readUint64(length)
+		return rr.readUint64(size)
 	case protocol.SimpleTypeIntSigned: // int64
-		return rr.readInt64(length)
+		return rr.readInt64(size)
 	case protocol.SimpleTypeFloat: // float32
-		return nil, ErrNotImplementedDataType
+		return rr.readFloat32(size)
 	default:
 		return nil, ErrNotImplementedDataType
 	}

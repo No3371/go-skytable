@@ -18,9 +18,9 @@ func (rr ResponseReader) readTypedArray(t protocol.SimpleType, items int64) (*pr
 	var err error
 
 	for i := int64(0); i < items; i++ {
-		arr.Elements[i], err = rr.readOneTypedEntry(protocol.DataType(t))
+		arr.Elements[i], err = rr.readOneEntryTyped(protocol.DataType(t))
 		if err != nil {
-			return &arr, fmt.Errorf("failed to read typed array entry #%d/%d: %w", i + 1, items, err)
+			return &arr, fmt.Errorf("failed to read typed array entry #%d/%d: %w", i+1, items, err)
 		}
 	}
 
@@ -39,9 +39,9 @@ func (rr ResponseReader) readTypedNonNullArray(t protocol.SimpleType, items int6
 	var err error
 
 	for i := int64(0); i < items; i++ {
-		arr.Elements[i], err = rr.readOneTypedEntry(protocol.DataType(t))
+		arr.Elements[i], err = rr.readOneEntryTyped(protocol.DataType(t))
 		if err != nil {
-			return &arr, fmt.Errorf("failed to read typed array entry #%d/%d: %w", i + 1, items, err)
+			return &arr, fmt.Errorf("failed to read typed array entry #%d/%d: %w", i+1, items, err)
 		}
 
 		if arr.Elements[i] == nil {

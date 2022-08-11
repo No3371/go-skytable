@@ -11,25 +11,24 @@ import (
 // KEYSPACE for Keyspaces
 // KEYSPACE:TABLE for tables
 
-
 type Use struct {
-	path string
+	Path string
 }
 
 func NewUse(path string) *Use {
 	return &Use{
-		path: path,
+		Path: path,
 	}
 }
 
-func FormatUse (path string) string {
+func FormatSingleUsePacket(path string) string {
 	return fmt.Sprintf("*1\n~2\n3\nUSE\n%d\n%s\n", len(path), path)
 }
 
 func (q Use) AppendToPacket(builder *strings.Builder) error {
 	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 2, builder)
 	AppendElement("USE", builder, false)
-	AppendElement(q.path, builder, false)
+	AppendElement(q.Path, builder, false)
 	return nil
 }
 
@@ -37,7 +36,13 @@ func (q Use) ValidateProtocol(response interface{}) error {
 	switch response := response.(type) {
 	case protocol.ResponseCode:
 		switch response {
+		case protocol.RespOkay:
+			return nil
 		case protocol.RespNil:
+			return nil
+		case protocol.RespErrStr:
+			return nil
+		case protocol.RespServerError:
 			return nil
 		default:
 			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("Use: Unexpected response element: %v", response), nil)

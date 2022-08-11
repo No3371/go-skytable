@@ -110,7 +110,7 @@ func (c *Conn) Get(ctx context.Context, key string) (response.ResponseEntry, err
 	return rp.resps[0], nil
 }
 
-// GetBytes() is a strict version of GET that only success if the value is stored as String in Skytable. 
+// GetBytes() is a strict version of GET that only success if the value is stored as String in Skytable.
 func (c *Conn) GetString(ctx context.Context, key string) (string, error) {
 	rp, err := c.Get(ctx, key)
 	if err != nil {
@@ -127,7 +127,7 @@ func (c *Conn) GetString(ctx context.Context, key string) (string, error) {
 	}
 }
 
-// GetBytes() is a strict version of GET that only success if the value is stored as BinaryString in Skytable. 
+// GetBytes() is a strict version of GET that only success if the value is stored as BinaryString in Skytable.
 func (c *Conn) GetBytes(ctx context.Context, key string) ([]byte, error) {
 	rp, err := c.Get(ctx, key)
 	if err != nil {
@@ -272,7 +272,7 @@ func (c *Conn) ExecSingleRawQuery(segments ...string) (response.ResponseEntry, e
 // }
 
 func (c *Conn) CreateKeyspace(ctx context.Context, path string) error {
-	cmd := action.FormatCreateKeyspace(path)
+	cmd := action.FormatSingleCreateKeyspacePacket(path)
 	rp, err := c.ExecRaw([]byte(cmd))
 	if err != nil {
 		return err
@@ -288,19 +288,40 @@ func (c *Conn) CreateKeyspace(ctx context.Context, path string) error {
 		case protocol.RespOkay:
 			return nil
 		default:
-			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("Update(): Unexpected response code: %s", resp), nil)
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("CreateKeyspace(): Unexpected response code: %s", resp), nil)
 		}
 	}
 
 	return nil
 }
 
-// func (c *Conn) DropKeyspace(ctx context.Context, name string) error {
-// 	panic("not implemented") // TODO: Implement
-// }
+func (c *Conn) DropKeyspace(ctx context.Context, path string) error {
+	cmd := action.FormatDropKeyspace(path)
+
+	rp, err := c.ExecRaw([]byte(cmd))
+	if err != nil {
+		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespOkay:
+			return nil
+		default:
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("DropKeyspace(): Unexpected response code: %s", resp), nil)
+		}
+	}
+
+	return nil
+}
 
 func (c *Conn) Use(ctx context.Context, path string) error {
-	cmd := action.FormatUse(path)
+	cmd := action.FormatSingleUsePacket(path)
 	rp, err := c.ExecRaw([]byte(cmd))
 	if err != nil {
 		return err
@@ -331,13 +352,58 @@ func (c *Conn) Use(ctx context.Context, path string) error {
 // 	panic("not implemented") // TODO: Implement
 // }
 
-// func (c *Conn) CreateTable(ctx context.Context, name string, description any) error {
-// 	panic("not implemented") // TODO: Implement
-// }
+func (c *Conn) CreateTable(ctx context.Context, path string, modelDesc any) error {
+	cmd, err := action.FormatSingleCreateTablePacket(path, modelDesc)
+	if err != nil {
+		return err
+	}
 
-// func (c *Conn) DropTable(ctx context.Context, name string) error {
-// 	panic("not implemented") // TODO: Implement
-// }
+	rp, err := c.ExecRaw([]byte(cmd))
+	if err != nil {
+		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespOkay:
+			return nil
+		default:
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("CreateTable(): Unexpected response code: %s", resp), nil)
+		}
+	}
+
+	return nil
+}
+
+func (c *Conn) DropTable(ctx context.Context, path string) error {
+	cmd := action.FormatSingleDropTablePacket(path)
+
+	rp, err := c.ExecRaw([]byte(cmd))
+	if err != nil {
+		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespOkay:
+			return nil
+		default:
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("DropTable(): Unexpected response code: %s", resp), nil)
+		}
+	}
+
+	return nil
+}
 
 // func (c *Conn) UseTable(ctx context.Context, name string) error {
 // 	panic("not implemented") // TODO: Implement

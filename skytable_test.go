@@ -39,7 +39,6 @@ func GetTestToken() (string, bool) {
 	return string(read), true
 }
 
-
 func TestConnPoolLocalAuth(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -161,6 +160,13 @@ func TestConnPoolLocalSetGetBurst(t *testing.T) {
     }
 }
 
+func TestConnLocalNoAuth(t *testing.T) {
+	_, err := skytable.NewConn(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: NonAuthInstancePort})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestConnLocalAuth(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -189,15 +195,15 @@ func TestConnLocalAuth(t *testing.T) {
 	}
 }
 
-func TestConnLocalAuthFail (t *testing.T) {    
-	c, err := skytable.NewConn(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(NonAuthInstancePort)})
-	if err == nil {
-		t.Fatal(err)
-	} else {
-        t.Log(err)
+func TestConnLocalAuthFail (t *testing.T) {
+    auth := func() (username, token string) {
+        return "a", "_b_"
     }
 
-    c.Close()
+	_, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
+	if err == nil {
+		t.Fatal(err)
+	}
 }
 
 func TestConnLocalSetSeqGet(t *testing.T) {
@@ -528,5 +534,68 @@ func TestBytes (t *testing.T) {
 		if getBytes[i] != v[i] {
 			t.Fatalf("mismatch at #%d: %d/%d", i, getBytes[i], v[i])
 		}
+	}
+}
+
+func TestKeyspaceCreateUseDropSinglePacket(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	token, gotToken := GetTestToken()
+	if !gotToken {
+		t.Fatalf("failed to get token of '%s'", testUserName)
+	}
+
+    auth := func() (u, t string) {
+            u = testUserName
+            t = token
+            return u, t
+        }
+
+	c, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.AuthLogin(ctx, testUserName, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	k := "t1_fq46r233_fortestonly"
+
+	p := skytable.NewQueryPacket([]skytable.Action {
+		action.CreateKeyspace{ Path: k },
+		action.Use{ Path: k },
+		action.Use{ Path: "default" },
+		action.DropKeyspace{ Path: k },
+	})
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	anyErr := false
+	for i, resp := range rp.Resps() {
+		if resp.Err != nil {
+
+			var errStr protocol.ErrorStringResponse
+			if errors.As(resp.Err, &errStr) {
+				if i == 0 && errStr.Errstr == "err-already-exists" {
+					continue
+				}
+			}
+
+			t.Errorf("#%d: %s", i+1, resp.Err)
+			anyErr = true
+		} else if resp.Value != protocol.RespOkay {
+			t.Errorf("#%d: expecting Okay but get %v", i+1, resp.Value)
+			anyErr = true
+		}
+	}
+
+	if anyErr {
+		t.Fail()
 	}
 }

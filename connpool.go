@@ -309,9 +309,15 @@ func (c *ConnPool) CreateKeyspace(ctx context.Context, path string) error {
 	return conn.CreateKeyspace(ctx, path)
 }
 
-// func (c *ConnPool) DropKeyspace(ctx context.Context, name string) error {
-// 	panic("not implemented") // TODO: Implement
-// }
+func (c *ConnPool) DropKeyspace(ctx context.Context, path string) error {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPool.Dropkeyspace(): failed to get conn: %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.DropKeyspace(ctx, path)
+}
 
 // Use will take all conns and do *conn.Use() on each.
 func (c *ConnPool) Use(ctx context.Context, path string) error {
@@ -328,13 +334,25 @@ func (c *ConnPool) Use(ctx context.Context, path string) error {
 // 	panic("not implemented") // TODO: Implement
 // }
 
-// func (c *ConnPool) CreateTable(ctx context.Context, name string, description any) error {
-// 	panic("not implemented") // TODO: Implement
-// }
+func (c *ConnPool) CreateTable(ctx context.Context, path string, modelDesc any) error {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPool.CreateTable: failed to get conn: %w", err)
+	}
+	defer c.pushConn(conn)
 
-// func (c *ConnPool) DropTable(ctx context.Context, name string) error {
-// 	panic("not implemented") // TODO: Implement
-// }
+	return conn.CreateTable(ctx, path, modelDesc)
+}
+
+func (c *ConnPool) DropTable(ctx context.Context, path string) error {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPool.DropTable(): failed to get conn: %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.DropTable(ctx, path)
+}
 
 // func (c *ConnPool) UseTable(ctx context.Context, name string) error {
 // 	panic("not implemented") // TODO: Implement

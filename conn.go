@@ -182,11 +182,7 @@ func (c *Conn) ExecQuery(bq BuiltQuery) (*ResponsePacket, error) {
 		return nil, NewComuError("failed to read from conn", err)
 	}
 
-	if len(bq.actions) != len(resps) {
-		panic("response entry count mismatch")
-	}
-
-	for i := 0; i < len(bq.actions); i++ {
+	for i := 0; i < len(resps); i++ {
 		if protoErr := bq.actions[i].ValidateProtocol(resps[i].Value); protoErr != nil {
 			resps[i].Err = protoErr
 		}

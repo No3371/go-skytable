@@ -60,8 +60,12 @@ func (rr ResponseReader) Read(r io.Reader) ([]ResponseEntry, error) {
 
 	for i := int64(0); i < count; i++ {
 		dt, v, err := rr.readOneEntry()
-		if err != nil && !errors.Is(err, ErrNotImplementedDataType) {
-			return entries, fmt.Errorf("an error occured when reading entry#%d/%d: %w", i+1, count, err)
+		if err != nil {
+			if dt == protocol.DataTypeResponseCode && v == protocol.RespErrStr {
+				// allow
+			} else {
+				return entries, fmt.Errorf("an error occured when reading entry#%d/%d: %w", i+1, count, err)
+			}
 		}
 
 		entries[i] = ResponseEntry{

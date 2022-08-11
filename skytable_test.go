@@ -537,7 +537,7 @@ func TestBytes (t *testing.T) {
 	}
 }
 
-func TestKeyspaceCreateUseDropSinglePacket(t *testing.T) {
+func TestKeyspaceCreateUseDropConnCalls (t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -557,7 +557,43 @@ func TestKeyspaceCreateUseDropSinglePacket(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = c.AuthLogin(ctx, testUserName, token)
+	k := "t1_fq46r233_fortestonly"
+
+	err = c.CreateKeyspace(ctx, k)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.Use(ctx, k)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.Use(ctx, "default")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.DropKeyspace(ctx, k)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestKeyspaceCreateUseDropSinglePacket(t *testing.T) {
+
+	token, gotToken := GetTestToken()
+	if !gotToken {
+		t.Fatalf("failed to get token of '%s'", testUserName)
+	}
+
+    auth := func() (u, t string) {
+            u = testUserName
+            t = token
+            return u, t
+        }
+
+	c, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
 	if err != nil {
 		t.Fatal(err)
 	}

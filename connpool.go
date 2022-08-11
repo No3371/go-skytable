@@ -12,6 +12,8 @@ import (
 	"github.com/No3371/go-skytable/response"
 )
 
+// ConnPool manage multiple Conns automatically.
+// A conn will be taken to perform the task for most of the methods, and be queued back when done.
 type ConnPool struct {
 	available chan *Conn
 	opened int64 // atomic
@@ -20,7 +22,7 @@ type ConnPool struct {
 }
 
 type ConnPoolOptions struct {
-	Cap          int64
+	Cap          int64 // The maximun of opened Conns at the same time
 	AuthProvider func() (username, token string) // Do not keep auth info in memory
 	DefaultEntity string // "KEYSPACE" or "KEYSPACE:CONTAINER"
 }
@@ -29,6 +31,8 @@ var DefaultConnPoolOptions = ConnPoolOptions{
 	Cap: int64(runtime.NumCPU()) * 2,
 }
 
+// NewConnPool create a ConnPool that manage Conns automatically.
+// DefaultConnPoolOptions is available for the `opts` argument.
 func NewConnPool(remote *net.TCPAddr, opts ConnPoolOptions) *ConnPool {
 	if opts.Cap == 0 {
 		opts.Cap = int64(runtime.NumCPU()) * 2
@@ -201,6 +205,7 @@ func (c *ConnPool) Get(ctx context.Context, key string) (response.ResponseEntry,
 	return c.Get(ctx, key)
 }
 
+// GetString() is a strict version of Get() that only success if the value is stored as String in Skytable.
 func (c *ConnPool) GetString(ctx context.Context, key string) (string, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -211,6 +216,7 @@ func (c *ConnPool) GetString(ctx context.Context, key string) (string, error) {
 	return conn.GetString(ctx, key)
 }
 
+// GetBytes() is a strict version of GET that only success if the value is stored as BinaryString in Skytable.
 func (c *ConnPool) GetBytes(ctx context.Context, key string) ([]byte, error) {
 	conn, err := c.popConn(false)
 	if err != nil {

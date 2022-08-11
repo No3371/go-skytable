@@ -110,7 +110,7 @@ func (c *Conn) Get(ctx context.Context, key string) (response.ResponseEntry, err
 	return rp.resps[0], nil
 }
 
-// GetBytes() is a strict version of GET that only success if the value is stored as String in Skytable.
+// GetString() is a strict version of Get() that only success if the value is stored as String in Skytable.
 func (c *Conn) GetString(ctx context.Context, key string) (string, error) {
 	rp, err := c.Get(ctx, key)
 	if err != nil {
@@ -320,6 +320,7 @@ func (c *Conn) DropKeyspace(ctx context.Context, path string) error {
 	return nil
 }
 
+// USE is for sending "USE KEYSPACE" or "USE KEYSPACE:TABLE", which change the container the connection is using.
 func (c *Conn) Use(ctx context.Context, path string) error {
 	cmd := action.FormatSingleUsePacket(path)
 	rp, err := c.ExecRaw([]byte(cmd))

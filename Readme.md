@@ -158,9 +158,20 @@ resp, err := c.BuildAndExecQuery(p)
 - [ ] INSPECT TABLE
 - [X] DROP TABLE
 
+## DDL with Connection Pool
+
+Connection Pools manage multiple connections on its own and users have no way to decide which `Conn` is used on method calls. Running `USE` with Connection Pools means a random `Conn` will use the specified container.
+
+This means it's possible for connections in a pool using different container, therefore actions could be unintentionally sent to unexpected containers.
+
+If you are working with multiple Keyspaces/Tables and you are using Connection Pool, there are 2 suggested usages:
+
+- **Container-dedicated connection pool**: Calling `*ConnPool.UseKeyspace/Table` will iterate through all opened connections in the pool and call their USE, and change the default Keyspace/Table of the future new connection in the pool.
+- **USE first in every packet**: this may introduce performance loss and frequent USEs are not recommended by Skytable official.
+
 ## Testing
 
-Testcases are written for both Auth-Enabled and Auth-Disabled instances.
+Testcases are written for both Auth-Enabled and Auth-Disabled Skytable instances.
 The Auth-Enabled one should be bound to 2003 (Skytable default port), while the Auth-Disabled one should be bound to 2004 (as specified in `skytable_test.go`).
 
 All auth testcases use username `go-skytable-test` (as specified in `skytable_test.go`), and looks up the token by:

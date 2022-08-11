@@ -36,6 +36,8 @@ func (q Login) ValidateProtocol(response interface{}) error {
 			return nil
 		case protocol.RespBadCredentials:
 			return nil
+		case protocol.RespServerError:
+			return nil
 		default:
 			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("AUTH LOGIN: Unexpected response code: %s", response.String()), nil)
 		}

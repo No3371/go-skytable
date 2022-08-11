@@ -91,7 +91,7 @@ resp, err := c.BuildAndExecQuery(p)
 - [X] BinaryString
 - [ ] SmallInteger
 - [ ] SignedSmallInteger
-- [ ] Float
+- [X] Float
 - [ ] Json
 
 - [X] TypedArray
@@ -149,11 +149,23 @@ resp, err := c.BuildAndExecQuery(p)
 ## DDL Actions
 
 - [X] CREATE KEYSPACE
-- [ ] USE KEYSPACE
+- [X] USE KEYSPACE
 - [ ] INSPECT KEYSPACE
-- [ ] DROP KEYSPACE
+- [X] DROP KEYSPACE
 
 - [X] CREATE TABLE
-- [ ] USE TABLE
+- [X] USE TABLE
 - [ ] INSPECT TABLE
-- [ ] DROP TABLE
+- [X] DROP TABLE
+
+## Testing
+
+Testcases are written for both Auth-Enabled and Auth-Disabled instances.
+The Auth-Enabled one should be bound to 2003 (Skytable default port), while the Auth-Disabled one should be bound to 2004 (as specified in `skytable_test.go`).
+
+All auth testcases use username `go-skytable-test` (as specified in `skytable_test.go`), and looks up the token by:
+
+1. Read the value of environment variable `GO_SKYTABLE_TEST_TOKEN` as the token.
+2. If step 1 failed, read a file in the repo named `go-skytable-test` and read the content as the token.
+
+If the `go-skytable-test` user and the token are setup correctly, the auth testcases should run without issues.

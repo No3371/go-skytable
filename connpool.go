@@ -319,11 +319,21 @@ func (c *ConnPool) DropKeyspace(ctx context.Context, path string) error {
 	return conn.DropKeyspace(ctx, path)
 }
 
-// Use will take all conns and do *conn.Use() on each.
+// *Conn.Use() is for sending "USE KEYSPACE" or "USE KEYSPACE:TABLE", which change the container the connection is using.
+//
+// This method will take all conns and do *Conn.Use() on each, and overwrite the DefaultEntity of the pool.
+//
+// Noted that if there's an error, it's possible that the iteration is not completed and the connections may be using different containers.
+// So it's suggested to reset them by doing DDLs not likely to go wrong, like Use("default").
 func (c *ConnPool) Use(ctx context.Context, path string) error {
-	return c.DoEachConn(func(conn *Conn) error {
+	c.opts.DefaultEntity = path
+	err := c.DoEachConn(func(conn *Conn) error {
 		return conn.Use(ctx, path)
 	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // func (c *ConnPool) InspectCurrentKeyspace(ctx context.Context) (protocol.Array, error) {

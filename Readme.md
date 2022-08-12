@@ -142,7 +142,7 @@ resp, err := c.BuildAndExecQuery(p)
 
 - [X] SYS INFO VERSION
 - [X] SYS INFO PROTOCOL
-- [ ] SYS INFO PROTOVER
+- [X] SYS INFO PROTOVER
 - [ ] SYS METRIC HEALTH
 - [ ] SYS METRIC STORAGE
 

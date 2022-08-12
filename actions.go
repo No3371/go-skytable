@@ -486,9 +486,22 @@ func (c *Conn) SysInfoProtocol(ctx context.Context) (string, error) {
 	return rp.resps[0].Value.(string), nil
 }
 
-// func (c *Conn) SysInfoProtover(ctx context.Context) (float64, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
+func (c *Conn) SysInfoProtoVer(ctx context.Context) (float32, error) {
+	rp, err := c.ExecRaw([]byte("*1\n~3\n3\nSYS\n4\nINFO\n8\nPROTOVER\n"))
+	if err != nil {
+		return 0, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return 0, rp.resps[0].Err
+	}
+
+	if rp.resps[0].DataType != protocol.DataTypeFloat {
+		return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("SysInfoProtoVer(): response is not a float: %s %v", rp.resps[0].DataType.String(), rp.resps[0].Value), nil)
+	}
+
+	return rp.resps[0].Value.(float32), nil
+}
 
 // func (c *Conn) SysMetricHealth(ctx context.Context) (string, error) {
 // 	panic("not implemented") // TODO: Implement

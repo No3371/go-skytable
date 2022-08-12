@@ -402,9 +402,15 @@ func (c *ConnPool) SysInfoProtocol(ctx context.Context) (string, error) {
 	return conn.SysInfoProtocol(ctx)
 }
 
-// func (c *ConnPool) SysInfoProtover(ctx context.Context) (float64, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
+func (c *ConnPool) SysInfoProtoVer(ctx context.Context) (float32, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return 0, fmt.Errorf("*ConnPool.SysInfoProtoVer(): %w", err)
+	}
+	defer c.pushConn(conn)
+	
+	return conn.SysInfoProtoVer(ctx)
+}
 
 // func (c *ConnPool) SysMetricHealth(ctx context.Context) (string, error) {
 // 	panic("not implemented") // TODO: Implement

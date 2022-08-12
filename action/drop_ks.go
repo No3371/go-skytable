@@ -27,7 +27,7 @@ func (q DropKeyspace) AppendToPacket(builder *strings.Builder) error {
 		return err
 	}
 
-	err = AppendElements(builder, false, q.Path)
+	err = AppendElements(builder, false, "DROP", "KEYSPACE", q.Path)
 	if err != nil {
 		return err
 	}

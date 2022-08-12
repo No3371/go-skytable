@@ -62,7 +62,7 @@ func (rr ResponseReader) Read(r io.Reader) ([]ResponseEntry, error) {
 		dt, v, err := rr.readOneEntry()
 		if err != nil {
 			var errErrStr protocol.ErrorStringResponse
-			if ! (dt == protocol.DataTypeResponseCode && errors.As(err, &errErrStr)) {
+			if ! (dt == protocol.DataTypeResponseCode && !errors.As(err, &errErrStr)) { // error strings are passed into the entry
 				return entries, fmt.Errorf("an error occured when reading entry#%d/%d: %w", i+1, count, err)
 			}
 		}

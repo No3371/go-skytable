@@ -60,8 +60,6 @@ func (q CreateTable) ValidateProtocol(response interface{}) error {
 		switch response {
 		case protocol.RespOkay:
 			return nil
-		case protocol.RespNil:
-			return nil
 		case protocol.RespErrStr:
 			return nil
 		case protocol.RespServerError:

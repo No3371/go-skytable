@@ -61,17 +61,14 @@ func (rr ResponseReader) Read(r io.Reader) ([]ResponseEntry, error) {
 	for i := int64(0); i < count; i++ {
 		dt, v, err := rr.readOneEntry()
 		if err != nil {
-			if dt == protocol.DataTypeResponseCode && v == protocol.RespErrStr {
-				switch v {
-				case protocol.RespErrStr:
-					// do nothing, let it goes in the entry.Err
-				case protocol.RespPacketError:
-					return nil, protocol.ErrCodePacketError
-				}
-				// allow
-			} else {
+			var errErrStr protocol.ErrorStringResponse
+			if ! (dt == protocol.DataTypeResponseCode && errors.As(err, &errErrStr)) {
 				return entries, fmt.Errorf("an error occured when reading entry#%d/%d: %w", i+1, count, err)
 			}
+		}
+
+		if dt == protocol.DataTypeResponseCode && v == protocol.RespPacketError {
+			return nil, protocol.ErrCodePacketError
 		}
 
 		entries[i] = ResponseEntry{

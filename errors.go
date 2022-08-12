@@ -55,7 +55,7 @@ func NewUsageError(msg string, err error) ErrInvalidUsage {
 
 func (err ErrInvalidUsage) Error() string {
 	if err.innerErr != nil {
-		return fmt.Sprintf("%s Error: %s", err.msg, err.innerErr)
+		return fmt.Sprintf("%s reason: %s", err.msg, err.innerErr)
 	} else {
 		return err.msg
 	}

@@ -158,7 +158,7 @@ func (c *ConnPool) DoEachConn(action func (conn *Conn) error) error {
 func (c *ConnPool) Heya(ctx context.Context, echo string) (err error) {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return err
+		return fmt.Errorf("*ConnPool.Heya(): %w", err)
 	}
 	defer c.pushConn(conn)
 
@@ -168,7 +168,7 @@ func (c *ConnPool) Heya(ctx context.Context, echo string) (err error) {
 func (c *ConnPool) AuthLogin(ctx context.Context, username string, token string) error {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return err
+		return fmt.Errorf("*ConnPool.AuthLogin(): %w", err)
 	}
 	defer c.pushConn(conn)
 
@@ -178,7 +178,7 @@ func (c *ConnPool) AuthLogin(ctx context.Context, username string, token string)
 func (c *ConnPool) Exists(ctx context.Context, keys []string) (uint64, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("*ConnPool.Exists(): %w", err)
 	}
 	defer c.pushConn(conn)
 
@@ -188,7 +188,7 @@ func (c *ConnPool) Exists(ctx context.Context, keys []string) (uint64, error) {
 func (c *ConnPool) Del(ctx context.Context, keys []string) (uint64, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("*ConnPool.Del(): %w", err)
 	}
 	defer c.pushConn(conn)
 
@@ -198,7 +198,7 @@ func (c *ConnPool) Del(ctx context.Context, keys []string) (uint64, error) {
 func (c *ConnPool) Get(ctx context.Context, key string) (response.ResponseEntry, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return response.EmptyResponseEntry, err
+		return response.EmptyResponseEntry, fmt.Errorf("*ConnPool.Get(): %w", err)
 	}
 	defer c.pushConn(conn)
 
@@ -209,7 +209,7 @@ func (c *ConnPool) Get(ctx context.Context, key string) (response.ResponseEntry,
 func (c *ConnPool) GetString(ctx context.Context, key string) (string, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("*ConnPool.GetString(): %w", err)
 	}
 	defer c.pushConn(conn)
 
@@ -220,7 +220,7 @@ func (c *ConnPool) GetString(ctx context.Context, key string) (string, error) {
 func (c *ConnPool) GetBytes(ctx context.Context, key string) ([]byte, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("*ConnPool.GetBytes(): %w", err)
 	}
 	defer c.pushConn(conn)
 
@@ -230,7 +230,7 @@ func (c *ConnPool) GetBytes(ctx context.Context, key string) ([]byte, error) {
 func (c *ConnPool) MGet(ctx context.Context, keys []string) (*protocol.TypedArray, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("*ConnPool.MGet(): %w", err)
 	}
 	defer c.pushConn(conn)
 
@@ -240,7 +240,7 @@ func (c *ConnPool) MGet(ctx context.Context, keys []string) (*protocol.TypedArra
 func (c *ConnPool) Set(ctx context.Context, key string, value any) error {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return err
+		return fmt.Errorf("*ConnPool.Set(): %w", err)
 	}
 	defer c.pushConn(conn)
 
@@ -250,7 +250,7 @@ func (c *ConnPool) Set(ctx context.Context, key string, value any) error {
 func (c *ConnPool) Update(ctx context.Context, key string, value any) error {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return err
+		return fmt.Errorf("*ConnPool.Update(): %w", err)
 	}
 	defer c.pushConn(conn)
 
@@ -272,7 +272,7 @@ func (c *ConnPool) Update(ctx context.Context, key string, value any) error {
 func (c *ConnPool) Exec(ctx context.Context, packet *QueryPacket) ([]response.ResponseEntry, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return nil, fmt.Errorf("get: conn pool: failed to get conn: %w", err)
+		return nil, fmt.Errorf("*ConnPool.Exec(): %w", err)
 	}
 	defer c.pushConn(conn)
 
@@ -282,7 +282,7 @@ func (c *ConnPool) Exec(ctx context.Context, packet *QueryPacket) ([]response.Re
 func (c *ConnPool) ExecSingleRawQuery(segments ...string) (response.ResponseEntry, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return response.EmptyResponseEntry, fmt.Errorf("get: conn pool: failed to get conn: %w", err)
+		return response.EmptyResponseEntry, fmt.Errorf("*ConnPool.ExecSingleRawQuery(): %w", err)
 	}
 	defer c.pushConn(conn)
 
@@ -308,7 +308,7 @@ func (c *ConnPool) ExecSingleRawQuery(segments ...string) (response.ResponseEntr
 func (c *ConnPool) CreateKeyspace(ctx context.Context, path string) error {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return fmt.Errorf("create keyspace: conn pool: failed to get conn: %w", err)
+		return fmt.Errorf("*ConnPool.CreateKeyspace(): %w", err)
 	}
 	defer c.pushConn(conn)
 
@@ -318,7 +318,7 @@ func (c *ConnPool) CreateKeyspace(ctx context.Context, path string) error {
 func (c *ConnPool) DropKeyspace(ctx context.Context, path string) error {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return fmt.Errorf("*ConnPool.Dropkeyspace(): failed to get conn: %w", err)
+		return fmt.Errorf("*ConnPool.Dropkeyspace(): %w", err)
 	}
 	defer c.pushConn(conn)
 
@@ -353,7 +353,7 @@ func (c *ConnPool) Use(ctx context.Context, path string) error {
 func (c *ConnPool) CreateTable(ctx context.Context, path string, modelDesc any) error {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return fmt.Errorf("*ConnPool.CreateTable: failed to get conn: %w", err)
+		return fmt.Errorf("*ConnPool.CreateTable(): %w", err)
 	}
 	defer c.pushConn(conn)
 
@@ -363,7 +363,7 @@ func (c *ConnPool) CreateTable(ctx context.Context, path string, modelDesc any) 
 func (c *ConnPool) DropTable(ctx context.Context, path string) error {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return fmt.Errorf("*ConnPool.DropTable(): failed to get conn: %w", err)
+		return fmt.Errorf("*ConnPool.DropTable(): %w", err)
 	}
 	defer c.pushConn(conn)
 
@@ -385,7 +385,7 @@ func (c *ConnPool) DropTable(ctx context.Context, path string) error {
 func (c *ConnPool) SysInfoVersion(ctx context.Context) (string, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return "", fmt.Errorf("get: conn pool: failed to get conn: %w", err)
+		return "", fmt.Errorf("*ConnPool.SysInfoVersion(): %w", err)
 	}
 	defer c.pushConn(conn)
 	
@@ -395,7 +395,7 @@ func (c *ConnPool) SysInfoVersion(ctx context.Context) (string, error) {
 func (c *ConnPool) SysInfoProtocol(ctx context.Context) (string, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
-		return "", fmt.Errorf("get: conn pool: failed to get conn: %w", err)
+		return "", fmt.Errorf("*ConnPool.SysInfoProtocol(): %w", err)
 	}
 	defer c.pushConn(conn)
 	

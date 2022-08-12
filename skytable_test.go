@@ -3,7 +3,6 @@ package skytable_test
 import (
 	"context"
 	"errors"
-	"log"
 	"math/rand"
 	"net"
 	"os"
@@ -29,13 +28,13 @@ func GetTestToken() (string, bool) {
 	if err != nil {
 		return "", false
 	}
-	log.Printf("Reading: %s", wd+"\\go-skytable-test")
+	// log.Printf("Reading: %s", wd+"\\go-skytable-test")
 	read, err := os.ReadFile(wd + "\\go-skytable-test")
 	if err != nil {
 		return string(read), false
 	}
 
-	log.Printf("Test user: %s %s", testUserName, read)
+	// log.Printf("Test user: %s %s", testUserName, read)
 	return string(read), true
 }
 
@@ -231,23 +230,7 @@ func TestConnLocalSetSeqGet(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	token, gotToken := GetTestToken()
-	if !gotToken {
-		t.Fatalf("failed to get token of '%s'", testUserName)
-	}
-
-    auth := func() (u, t string) {
-            u = testUserName
-            t = token
-            return u, t
-        }
-
-	c, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = c.AuthLogin(ctx, testUserName, token)
+	c, err := NewConnAuth()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -288,26 +271,7 @@ func TestConnLocalSetSeqGet(t *testing.T) {
 }
 
 func TestDelSetGetSinglePacket(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	token, gotToken := GetTestToken()
-	if !gotToken {
-		t.Fatalf("failed to get token of '%s'", testUserName)
-	}
-
-    auth := func() (u, t string) {
-            u = testUserName
-            t = token
-            return u, t
-        }
-
-	c, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = c.AuthLogin(ctx, testUserName, token)
+	c, err := NewConnAuth()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -430,24 +394,8 @@ func TestConnLocalSetMGet(t *testing.T) {
 func TestConnLocalExistsDelSetGet(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-    
-	token, gotToken := GetTestToken()
-	if !gotToken {
-		t.Fatalf("failed to get token of '%s'", testUserName)
-	}
 
-    auth := func() (u, t string) {
-            u = testUserName
-            t = token
-            return u, t
-        }
-
-	c, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = c.AuthLogin(ctx, testUserName, token)
+	c, err := NewConnAuth()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -556,6 +504,27 @@ func TestBytes (t *testing.T) {
 	}
 }
 
+func TestCreateKeyspace (t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	c, err := NewConnAuth()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	k := "t1_fq46r233_fortestonly"
+
+	err = c.CreateKeyspace(ctx, k)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.DropKeyspace(ctx, k)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
 func TestKeyspaceCreateInspectUseDropConnCallsNoAuth (t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -569,7 +538,11 @@ func TestKeyspaceCreateInspectUseDropConnCallsNoAuth (t *testing.T) {
 
 	err = c.DropKeyspace(ctx, k)
 	if err != nil {
-		t.Fatal(err)
+		if errErrStr, ok := err.(*protocol.ErrorStringResponse); ok || errors.As(err, errErrStr) {
+			if errErrStr.Errstr != protocol.ErrStr_ContainerNotFound {
+				t.Fatal(err)
+			}
+		}
 	}
 
 	err = c.CreateKeyspace(ctx, k)
@@ -611,18 +584,7 @@ func TestKeyspaceCreateInspectUseDropConnCalls (t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	token, gotToken := GetTestToken()
-	if !gotToken {
-		t.Fatalf("failed to get token of '%s'", testUserName)
-	}
-
-    auth := func() (u, t string) {
-            u = testUserName
-            t = token
-            return u, t
-        }
-
-	c, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
+	c, err := NewConnAuth()
 	if err != nil {
 		t.Fatal(err)
 	}

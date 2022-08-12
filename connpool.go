@@ -13,7 +13,11 @@ import (
 )
 
 // ConnPool manage multiple Conns automatically.
-// A conn will be taken to perform the task for most of the methods, and be queued back when done.
+//
+// A conn will be spawned or taken from a internal queue (channel) to perform the task for most of the methods, and be queued back when done.
+// A slow start should be expected if bursting packets with a new pool or not yet used to send a burst of packets.
+//
+// Therefore, `prewarming` by spawning a burst of parallel packet-sending goroutines is viable.
 type ConnPool struct {
 	available chan *Conn
 	opened int64 // atomic
@@ -342,13 +346,19 @@ func (c *ConnPool) Use(ctx context.Context, path string) error {
 	return nil
 }
 
-// func (c *ConnPool) InspectCurrentKeyspace(ctx context.Context) (protocol.Array, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
+func (c *ConnPool) InspectCurrentKeyspace(ctx context.Context) (*protocol.TypedArray, error) {
+	return c.InspectKeyspace(ctx, "")
+}
 
-// func (c *ConnPool) InspectKeyspace(ctx context.Context, name string) (protocol.Array, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
+func (c *ConnPool) InspectKeyspace(ctx context.Context, name string) (*protocol.TypedArray, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return nil, fmt.Errorf("*ConnPool.InspectKeyspace(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.InspectKeyspace(ctx, name)
+}
 
 func (c *ConnPool) CreateTable(ctx context.Context, path string, modelDesc any) error {
 	conn, err := c.popConn(false)

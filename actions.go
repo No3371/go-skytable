@@ -302,7 +302,7 @@ func (c *Conn) ExecSingleRawQuery(segments ...string) (response.ResponseEntry, e
 // }
 
 func (c *Conn) InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, error) {
-	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action { action.InspectKeyspaces{} }))
+	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action{action.InspectKeyspaces{}}))
 	if err != nil {
 		return nil, err
 	}
@@ -314,9 +314,10 @@ func (c *Conn) InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, erro
 	return rp.resps[0].Value.(*protocol.TypedArray), nil
 }
 
-// func (c *Conn) ListAllKeyspaces(ctx context.Context) (protocol.Array, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
+// This is just an alias of InspectKeyspaces.
+func (c *Conn) ListAllKeyspaces(ctx context.Context) (*protocol.TypedArray, error) {
+	return c.InspectKeyspaces(ctx)
+}
 
 func (c *Conn) CreateKeyspace(ctx context.Context, path string) error {
 	cmd := action.FormatSingleCreateKeyspacePacket(path)
@@ -392,13 +393,22 @@ func (c *Conn) Use(ctx context.Context, path string) error {
 	return nil
 }
 
-// func (c *Conn) InspectCurrentKeyspace(ctx context.Context) (protocol.Array, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
+func (c *Conn) InspectCurrentKeyspace(ctx context.Context) (*protocol.TypedArray, error) {
+	return c.InspectKeyspace(ctx, "")
+}
 
-// func (c *Conn) InspectKeyspace(ctx context.Context, name string) (protocol.Array, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
+func (c *Conn) InspectKeyspace(ctx context.Context, name string) (*protocol.TypedArray, error) {
+	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action{action.InspectKeyspace{Name: name}}))
+	if err != nil {
+		return nil, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return nil, rp.resps[0].Err
+	}
+
+	return rp.resps[0].Value.(*protocol.TypedArray), nil
+}
 
 func (c *Conn) CreateTable(ctx context.Context, path string, modelDesc any) error {
 	cmd, err := action.FormatSingleCreateTablePacket(path, modelDesc)

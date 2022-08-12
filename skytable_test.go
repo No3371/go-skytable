@@ -39,6 +39,25 @@ func GetTestToken() (string, bool) {
 	return string(read), true
 }
 
+func NewConnAuth () (*skytable.Conn, error) {
+	token, gotToken := GetTestToken()
+	if !gotToken {
+		return nil, errors.New("failed to get test user token")
+	}
+
+    auth := func() (u, t string) {
+            u = testUserName
+            t = token
+            return u, t
+        }
+
+	return skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
+}
+
+func NewConnNoAuth () (*skytable.Conn, error) {
+	return skytable.NewConn(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: NonAuthInstancePort})
+}
+
 func TestConnPoolLocalAuth(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -633,5 +652,80 @@ func TestKeyspaceCreateUseDropSinglePacket(t *testing.T) {
 
 	if anyErr {
 		t.Fail()
+	}
+}
+
+func TestPacketError(t *testing.T) {
+	c, err := NewConnNoAuth()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err := c.ExecRaw([]byte("*1\n~1\n2\nABC\n3\nABC\n"))
+	if err == nil {
+		t.Logf("Resp: %v", resp)
+		t.Fatal("ExecRaw: expecting error but got nil")
+	}
+
+	t.Logf("err: %s", err)
+	if !errors.Is(err, protocol.ErrCodePacketError) {
+		t.Fatalf("expecting PacketError but got %s", err)
+	}
+	
+	resp, err = c.ExecRaw([]byte("*1\n~1\n2\nABC\n3\nABC\n"))
+	if err == nil {
+		t.Logf("Resp: %v", resp)
+		t.Fatal("ExecRaw: expecting error but got nil")
+	}
+
+	var errUsage skytable.ErrInvalidUsage
+	t.Logf("err: %s", err)
+	if !errors.As(err, &errUsage) {
+		t.Fatalf("expecting ErrInvalidUsage but got %s", err)
+	}
+}
+
+func TestAutoReconnect(t *testing.T) {
+	c, err := NewConnNoAuth()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err := c.ExecRaw([]byte("*1\n~1\n2\nABC\n3\nABC\n"))
+	if err == nil {
+		t.Logf("Resp: %v", resp)
+		t.Fatal("ExecRaw: expecting error but got nil")
+	}
+
+	t.Logf("err: %s", err)
+	if !errors.Is(err, protocol.ErrCodePacketError) {
+		t.Fatalf("expecting PacketError but got %s", err)
+	}
+
+	resp, err = c.ExecRaw([]byte("*1\n~1\n2\nABC\n3\nABC\n"))
+	if err == nil {
+		t.Logf("Resp: %v", resp)
+		t.Fatal("ExecRaw: expecting error but got nil")
+	}
+
+	var errUsage skytable.ErrInvalidUsage
+	t.Logf("err: %s", err)
+	if !errors.As(err, &errUsage) {
+		t.Fatalf("expecting ErrInvalidUsage but got %s", err)
+	}
+
+	c.EnableAutoReconnect()
+	resp, err = c.ExecRaw([]byte("*1\n~1\n2\nABC\n3\nABC\n"))
+	if err == nil {
+		t.Logf("Resp: %v", resp)
+		t.Fatal("ExecRaw: expecting error but got nil")
+	}
+
+	t.Logf("err: %s", err)
+	if !errors.Is(err, protocol.ErrCodePacketError) {
+		t.Fatalf("expecting PacketError but got %s", err)
+	}
+	if errors.As(err, &errUsage) {
+		t.Fatalf("should not be InvalidUsage after auto reonnect: %s", err)
 	}
 }

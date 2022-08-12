@@ -20,6 +20,8 @@ type Conn struct {
 	strBuilder *strings.Builder
 	respReader *response.ResponseReader
 
+	autoReconnect bool
+
 	closed chan struct{}
 	err    error
 }
@@ -32,7 +34,6 @@ func (c Conn) UsedAt () time.Time {
 	return c.usedAt
 }
 
-
 func (c *Conn) Close() {
 	close(c.closed)
 	c.netConn.Close()
@@ -43,9 +44,59 @@ func (c *Conn) errClose(err error) {
 	c.Close()
 }
 
+// A Conn may closes itself when errors occured when reading/writng packets
+// While all the errors are being returned and can be handled, enabling auto reconnection will save you the trouble dealing with disconnection
+//
+// ⚠️ This could make you unaware of issues.
+func (c *Conn) EnableAutoReconnect() {
+	c.autoReconnect = true
+}
+
 // Err() return an error if the conn is closed due to an error
 func (c *Conn) Err() error {
 	return c.err
+}
+
+func (c *Conn) reconnect () error {
+	nc, err := net.DialTCP("tcp", nil, c.netConn.RemoteAddr().(*net.TCPAddr))
+	if err != nil {
+		return err
+	}
+
+	c.strBuilder.Reset()
+	c.closed = make(chan struct{})
+	c.openedAt = time.Now()
+	c.usedAt = time.Now()
+	c.err = nil
+	c.netConn = nc
+
+	pv, err := c.SysInfoProtocol(context.Background())
+	if err != nil {
+		return fmt.Errorf("conn: failed to get protocol version: %w", err)
+	}
+
+	if pv != ProtoVer {
+		return protocol.ErrProtocolVersion
+	}
+
+	return nil
+}
+
+func (c *Conn) checkClosed () error {
+	select {
+	case <-c.closed:
+		if c.autoReconnect {
+			err := c.reconnect()
+			if err != nil {
+				return fmt.Errorf("failed to reconnect: %w (previous: %s)", err, c.err)
+			}
+			return nil
+		} else {
+			return NewUsageError("the conn is already closed.", c.err)
+		}
+	default:
+		return nil
+	}
 }
 
 func NewConn(remote *net.TCPAddr) (*Conn, error) {
@@ -133,10 +184,8 @@ func (c *Conn) BuildSingleRaw(segs ...string) (raw string, err error) {
 }
 
 func (c *Conn) ExecRaw(query []byte) (*RawResponsePacket, error) {
-	select {
-	case <-c.closed:
-		return nil, NewUsageError("the conn is already closed.", c.err)
-	default:
+	if err := c.checkClosed(); err != nil {
+		return nil, err
 	}
 
 	_, err := c.netConn.Write(query)
@@ -164,10 +213,8 @@ type BuiltQuery struct {
 }
 
 func (c *Conn) ExecQuery(bq BuiltQuery) (*ResponsePacket, error) {
-	select {
-	case <-c.closed:
-		return nil, NewUsageError("the conn is already closed.", c.err)
-	default:
+	if err := c.checkClosed(); err != nil {
+		return nil, err
 	}
 
 	_, err := c.netConn.Write([]byte(bq.string))
@@ -197,10 +244,8 @@ func (c *Conn) ExecQuery(bq BuiltQuery) (*ResponsePacket, error) {
 }
 
 func (c *Conn) BuildQuery(p *QueryPacket) (BuiltQuery, error) {
-	select {
-	case <-c.closed:
-		return BuiltQuery{}, NewUsageError("the conn is already closed: ", c.err)
-	default:
+	if err := c.checkClosed(); err != nil {
+		return BuiltQuery{}, err
 	}
 
 	if p.actions == nil || len(p.actions) == 0 {
@@ -224,10 +269,8 @@ func (c *Conn) BuildQuery(p *QueryPacket) (BuiltQuery, error) {
 }
 
 func (c *Conn) BuildAndExecQuery(p *QueryPacket) (*ResponsePacket, error) {
-	select {
-	case <-c.closed:
-		return nil, NewUsageError("the conn is already closed: ", c.err)
-	default:
+	if err := c.checkClosed(); err != nil {
+		return nil, err
 	}
 
 	bq, err := c.BuildQuery(p)

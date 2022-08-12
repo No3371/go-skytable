@@ -75,7 +75,7 @@ p := skytable.NewQueryPacket(
 resp, err := c.BuildAndExecQuery(p)
 ```
 
-## Implemented
+## Progress
 
 ### Mechanics
 

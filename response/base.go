@@ -62,6 +62,12 @@ func (rr ResponseReader) Read(r io.Reader) ([]ResponseEntry, error) {
 		dt, v, err := rr.readOneEntry()
 		if err != nil {
 			if dt == protocol.DataTypeResponseCode && v == protocol.RespErrStr {
+				switch v {
+				case protocol.RespErrStr:
+					// do nothing, let it goes in the entry.Err
+				case protocol.RespPacketError:
+					return nil, protocol.ErrCodePacketError
+				}
 				// allow
 			} else {
 				return entries, fmt.Errorf("an error occured when reading entry#%d/%d: %w", i+1, count, err)

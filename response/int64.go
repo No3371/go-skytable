@@ -9,7 +9,7 @@ func (rr ResponseReader) readInt64(chars int64) (int64, error) {
 	}
 
 	if len(read) != int(chars+1) {
-		return 0, ErrDataLengthMismatch
+		return 0, ErrElementSizeMismatch
 	}
 
 	return strconv.ParseInt(string(read[:len(read)-1]), 10, 64)

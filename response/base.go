@@ -13,7 +13,7 @@ import (
 
 var ErrIncompletePacket = errors.New("incomplete packet")
 var ErrInvalidPacket = errors.New("invalid packet")
-var ErrDataLengthMismatch = errors.New("data length mismatch")
+var ErrElementSizeMismatch = errors.New("element size mismatch")
 var ErrNotImplementedDataType = errors.New("datatype not implemented")
 
 type ResponseEntry struct {

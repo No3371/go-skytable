@@ -9,7 +9,7 @@ func (rr ResponseReader) readFloat32(chars int64) (float32, error) {
 	}
 
 	if len(read) != int(chars+1) {
-		return 0, ErrDataLengthMismatch
+		return 0, ErrElementSizeMismatch
 	}
 
 	f, err := strconv.ParseFloat(string(read[:len(read)-1]), 32)

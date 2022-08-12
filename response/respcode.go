@@ -13,7 +13,7 @@ func (rr ResponseReader) readResponseCode(chars int64) (protocol.ResponseCode, e
 	}
 
 	if len(read) != int(chars+1) {
-		return -1, ErrDataLengthMismatch
+		return -1, ErrElementSizeMismatch
 	}
 
 	if read[0] >= '0' && read[0] <= '9' {

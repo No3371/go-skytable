@@ -9,6 +9,17 @@ import (
 	"github.com/No3371/go-skytable/protocol"
 )
 
+func AppendElements (builder *strings.Builder, typed bool, v... any) error {
+	for _, e := range v {
+		err := AppendElement(e, builder, typed)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func AppendElement(v interface{}, builder *strings.Builder, typed bool) error {
 	if v == nil {
 		fmt.Fprintf(builder, "\\0\n")

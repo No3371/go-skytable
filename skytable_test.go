@@ -556,7 +556,58 @@ func TestBytes (t *testing.T) {
 	}
 }
 
-func TestKeyspaceCreateUseDropConnCalls (t *testing.T) {
+func TestKeyspaceCreateInspectUseDropConnCallsNoAuth (t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	c, err := NewConnNoAuth()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	k := "t1_fq46r233_fortestonly"
+
+	err = c.DropKeyspace(ctx, k)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.CreateKeyspace(ctx, k)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	arr, err := c.InspectKeyspaces(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	inList := false
+	for _, ks := range arr.Elements {
+		if ks == k {
+			inList = true
+		}
+	}
+	if !inList {
+		t.Fatalf("keyspace %s is not found in keyspaces: %v", k, arr.Elements)
+	}
+
+	err = c.Use(ctx, k)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.Use(ctx, "default")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = c.DropKeyspace(ctx, k)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestKeyspaceCreateInspectUseDropConnCalls (t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -581,6 +632,20 @@ func TestKeyspaceCreateUseDropConnCalls (t *testing.T) {
 	err = c.CreateKeyspace(ctx, k)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	arr, err := c.InspectKeyspaces(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	inList := false
+	for _, ks := range arr.Elements {
+		if ks == k {
+			inList = true
+		}
+	}
+	if !inList {
+		t.Fatalf("keyspace %s is not found in keyspaces: %v", k, arr.Elements)
 	}
 
 	err = c.Use(ctx, k)

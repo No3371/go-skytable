@@ -301,9 +301,18 @@ func (c *Conn) ExecSingleRawQuery(segments ...string) (response.ResponseEntry, e
 // 	panic("not implemented") // TODO: Implement
 // }
 
-// func (c *Conn) InspectKeyspaces(ctx context.Context) (protocol.Array, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
+func (c *Conn) InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, error) {
+	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action { action.InspectKeyspaces{} }))
+	if err != nil {
+		return nil, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return nil, rp.resps[0].Err
+	}
+
+	return rp.resps[0].Value.(*protocol.TypedArray), nil
+}
 
 // func (c *Conn) ListAllKeyspaces(ctx context.Context) (protocol.Array, error) {
 // 	panic("not implemented") // TODO: Implement

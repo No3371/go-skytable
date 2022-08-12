@@ -14,7 +14,7 @@ type InspectKeyspaces struct {}
 // Get a list of all keyspaces within the instance.
 //
 // ⚠️ Only use this when sending packets contains this action only.
-func FormatInspectKeyspaces (path string) string {
+func FormatInspectKeyspaces () string {
 	return "*1\n~2\n7\nINSPECT\n9\nKEYSPACES\n"
 }
 
@@ -25,8 +25,12 @@ func (q InspectKeyspaces) AppendToPacket(builder *strings.Builder) error {
 
 func (q InspectKeyspaces) ValidateProtocol(response interface{}) error {
 	switch response := response.(type) {
-	case *protocol.Array:
-		return nil
+	case *protocol.TypedArray:
+		if response.ArrayType != protocol.CompoundTypeTypedArray {
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("InspectKeyspaces: Unexpected array type: %s", response.ArrayType), nil)
+		} else {
+			return nil
+		}
 	case protocol.ResponseCode:
 		switch response {
 		case protocol.RespServerError:

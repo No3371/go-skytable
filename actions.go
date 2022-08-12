@@ -94,6 +94,8 @@ func (c *Conn) Del(ctx context.Context, keys []string) (uint64, error) {
 	return rp.resps[0].Value.(uint64), nil
 }
 
+// Get the value of a key from the current table, if it exists
+// The returned value is either string or binary string
 func (c *Conn) Get(ctx context.Context, key string) (response.ResponseEntry, error) {
 	p := &QueryPacket{
 		ctx: ctx,
@@ -144,6 +146,7 @@ func (c *Conn) GetBytes(ctx context.Context, key string) ([]byte, error) {
 	}
 }
 
+// Get the value of 'n' keys from the current table, if they exist
 func (c *Conn) MGet(ctx context.Context, keys []string) (*protocol.TypedArray, error) {
 	p := &QueryPacket{
 		ctx: ctx,

@@ -19,6 +19,8 @@ func NewDropKeyspace(path string) *DropKeyspace {
 }
 
 func FormatDropKeyspace (path string) string {
+// ⚠️ Only use this when sending packets contains this action only.
+func FormatSingleDropKeyspacePacket (path string) string {
 	return fmt.Sprintf("*1\n~3\n4\nDROP\n8\nKEYSPACE\n%d\n%s\n", len(path), path)
 }
 

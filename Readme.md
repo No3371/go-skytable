@@ -6,11 +6,11 @@ A Go driver of [Skytable](https://github.com/skytable/skytable).
 
 ## Status
 
-The package implement Skyhash 1.1.
+The package implements Skyhash 1.1.
 
 Tested with: Skytable 0.7.5.
 
-No DDL supports yet so it can only works with `default:default` (keymap<string, binarystr>).
+DDL actions implemented.
 
 ## Installation
 
@@ -80,7 +80,8 @@ resp, err := c.BuildAndExecQuery(p)
 ### Mechanics
 
 - [ ] TLS
-- [ ] DDL (Keyspaces/Tables)
+- [X] DDL (Keyspaces/Tables)
+- [X] Auto-Reconnection
 
 ### DataTypes
 
@@ -96,8 +97,8 @@ resp, err := c.BuildAndExecQuery(p)
 
 - [X] TypedArray
 - [ ] Array
-- [ ] FlatArray
-- [ ] AnyArray
+- [X] FlatArray
+- [X] AnyArray (Writing. Reading will not be implemented because it's query specific.)
 - [X] TypedNonNullArray
 
 ### Actions
@@ -117,12 +118,12 @@ resp, err := c.BuildAndExecQuery(p)
 - [X] SET
 - [X] UPDATE
 - [X] MGET
+- [X] MSET
 - [X] DEL
 - [X] EXISTS
 - [X] HEYA
 - [ ] POP
 - [ ] MPOP
-- [ ] MSET
 - [ ] MUPDATE
 - [ ] SDEL
 - [ ] SSET
@@ -145,18 +146,6 @@ resp, err := c.BuildAndExecQuery(p)
 - [X] SYS INFO PROTOVER
 - [ ] SYS METRIC HEALTH
 - [ ] SYS METRIC STORAGE
-
-## DDL Actions
-
-- [X] CREATE KEYSPACE
-- [X] USE KEYSPACE
-- [ ] INSPECT KEYSPACE
-- [X] DROP KEYSPACE
-
-- [X] CREATE TABLE
-- [X] USE TABLE
-- [ ] INSPECT TABLE
-- [X] DROP TABLE
 
 ## DDL with Connection Pool
 

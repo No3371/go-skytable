@@ -20,10 +20,16 @@ func NewUpdate(key string, value interface{}) *Update {
 }
 
 func (q Update) AppendToPacket(builder *strings.Builder) error {
-	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 3, builder)
-	AppendElement("UPDATE", builder, false)
-	AppendElement(q.key, builder, false)
-	AppendElement(q.value, builder, false)
+	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 3, builder)
+	if err != nil {
+		return err
+	}
+
+	err = AppendElements(builder, false, "UPDATE", q.key, q.value)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

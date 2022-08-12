@@ -23,16 +23,26 @@ func FormatInspectKeyspace (path string) string {
 
 func (q InspectKeyspace) AppendToPacket(builder *strings.Builder) error {
 	if q.Path == "" {
-		builder.WriteString("~3\n4\nINSPECT\n8\nKEYSPACE\n")
+		_, err := builder.WriteString("~3\n4\nINSPECT\n8\nKEYSPACE\n")
+		if err != nil {
+			return err
+		}
 	}
+
 	if strings.Contains(q.Path, ":") {
 		return errors.New("do not include : in the path when Inspecting keyspace")
 	}
 
-	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 3, builder)
-	AppendElement("Inspect", builder, false)
-	AppendElement("KEYSPACE", builder, false)
-	AppendElement(q.Path, builder, false)
+	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 3, builder)
+	if err != nil {
+		return err
+	}
+
+	err = AppendElements(builder, false, "INSPECT", "KEYSPACE", q.Path)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

@@ -18,10 +18,21 @@ func NewMGet(keys []string) *MGet {
 }
 
 func (q MGet) AppendToPacket(builder *strings.Builder) error {
-	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, len(q.keys) + 1, builder)
-	AppendElement("MGET", builder, false)
+	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, len(q.keys) + 1, builder)
+	if err != nil {
+		return err
+	}
+
+	err = AppendElement("MGET", builder, false)
+	if err != nil {
+		return err
+	}
+
 	for _, k := range q.keys {
-		AppendElement(k, builder, false)
+		err = AppendElement(k, builder, false)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

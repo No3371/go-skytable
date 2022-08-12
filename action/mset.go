@@ -25,11 +25,26 @@ func NewMSetA(entries []MSetAEntry) *MSetA {
 
 
 func (q MSetA) AppendToPacket(builder *strings.Builder) error {
-	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, len(q.entries) * 2 + 1, builder)
-	AppendElement("MSET", builder, false)
+	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, len(q.entries) * 2 + 1, builder)
+	if err != nil {
+		return err
+	}
+
+	err = AppendElement("MSET", builder, false)
+	if err != nil {
+		return err
+	}
+
 	for _, e := range q.entries {
-		AppendElement(e.k, builder, false)
-		AppendElement(e.v, builder, false)
+		err = AppendElement(e.k, builder, false)
+		if err != nil {
+			return err
+		}
+
+		err = AppendElement(e.v, builder, false)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

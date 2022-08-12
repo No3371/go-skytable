@@ -27,10 +27,15 @@ func (q CreateKeyspace) AppendToPacket(builder *strings.Builder) error {
 		return errors.New("do not include : in the path when creating keyspace")
 	}
 
-	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 3, builder)
-	AppendElement("CREATE", builder, false)
-	AppendElement("KEYSPACE", builder, false)
-	AppendElement(q.Path, builder, false)
+	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 3, builder)
+	if err != nil {
+		return err
+	}
+
+	err = AppendElements(builder, false, "CREATE", "KEYSPACE", q.Path)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

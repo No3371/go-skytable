@@ -27,7 +27,7 @@ func FormatSingleCreateTablePacket(path string, modelDesc any) (string, error) {
 	}
 }
 
-func (q CreateTable) AppendToPacket(builder *strings.Builder) error {
+func (q CreateTable) AppendToPacket(builder *strings.Builder) (err error) {
 	if !strings.Contains(q.Path, ":") {
 		return errors.New("use explicit full path to the table to drop it (keyspace:table)")
 	}
@@ -35,17 +35,25 @@ func (q CreateTable) AppendToPacket(builder *strings.Builder) error {
 	switch modelDesc := q.ModelDescription.(type) {
 	case protocol.KeyMapDescription:
 		if modelDesc.Volatile {
-			AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 5, builder)
+			err = AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 5, builder)
 		} else {
-			AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 4, builder)
+			err = AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 4, builder)
 		}
-		AppendElement("CREATE", builder, false)
-		AppendElement("TABLE", builder, false)
-		AppendElement(q.Path, builder, false)
 
-		AppendElement(modelDesc.Model(), builder, false)
+		if err != nil {
+			return err
+		}
+
+		err = AppendElements(builder, false, "CREATE", "TABLE", q.Path, modelDesc.Model())
+		if err != nil {
+			return err
+		}
+
 		if modelDesc.Volatile {
-			AppendElement("volatile", builder, false)
+			err = AppendElement("volatile", builder, false)
+			if err != nil {
+				return err
+			}
 		}
 	default:
 		return errors.New("unexpected model description")

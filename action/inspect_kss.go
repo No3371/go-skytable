@@ -19,8 +19,8 @@ func FormatInspectKeyspaces () string {
 }
 
 func (q InspectKeyspaces) AppendToPacket(builder *strings.Builder) error {
-	builder.WriteString("~2\n7\nINSPECT\n9\nKEYSPACES\n")
-	return nil
+	_, err := builder.WriteString("~2\n7\nINSPECT\n9\nKEYSPACES\n")
+	return err
 }
 
 func (q InspectKeyspaces) ValidateProtocol(response interface{}) error {

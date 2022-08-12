@@ -26,17 +26,26 @@ func FormatSingleInspectTablePacket (path string) string {
 
 func (q InspectTable) AppendToPacket(builder *strings.Builder) error {
 	if q.Path == "" {
-		builder.WriteString("~3\n4\nINSPECT\n8\nTable\n")
+		_, err := builder.WriteString("~3\n4\nINSPECT\n8\nTable\n")
+		if err != nil {
+			return err
+		}
 	}
 
 	if !strings.Contains(q.Path, ":") {
 		return errors.New("use explicit full path to the table to inspect it (keyspace:table)")
 	}
 
-	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 3, builder)
-	AppendElement("INSPECT", builder, false)
-	AppendElement("TABLE", builder, false)
-	AppendElement(q.Path, builder, false)
+	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 3, builder)
+	if err != nil {
+		return err
+	}
+
+	err = AppendElements(builder, false, "INSPECT", "KEYSPACE", q.Path)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

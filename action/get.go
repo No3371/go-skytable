@@ -18,9 +18,16 @@ func NewGet(key string) *Get {
 }
 
 func (q Get) AppendToPacket(builder *strings.Builder) error {
-	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 2, builder)
-	AppendElement("GET", builder, false)
-	AppendElement(q.key, builder, false)
+	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 2, builder)
+	if err != nil {
+		return err
+	}
+
+	err = AppendElements(builder, false, "GET", q.key)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

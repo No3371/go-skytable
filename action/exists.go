@@ -18,10 +18,21 @@ func NewExists(keys []string) *Exists {
 }
 
 func (q Exists) AppendToPacket(builder *strings.Builder) error {
-	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, len(q.keys)+1, builder)
-	AppendElement("EXISTS", builder, false)
+	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, len(q.keys)+1, builder)
+	if err != nil {
+		return err
+	}
+
+	err = AppendElement("EXISTS", builder, false)
+	if err != nil {
+		return err
+	}
+
 	for _, k := range q.keys {
-		AppendElement(k, builder, false)
+		err = AppendElement(k, builder, false)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

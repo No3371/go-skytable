@@ -20,10 +20,15 @@ func NewSet(key string, value interface{}) *Set {
 }
 
 func (q Set) AppendToPacket(builder *strings.Builder) error {
-	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 3, builder)
-	AppendElement("SET", builder, false)
-	AppendElement(q.key, builder, false)
-	AppendElement(q.value, builder, false)
+	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 3, builder)
+	if err != nil {
+		return err
+	}
+
+	err = AppendElements(builder, false, "SET", q.key, q.value)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

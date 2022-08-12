@@ -26,9 +26,16 @@ func FormatSingleUsePacket(path string) string {
 }
 
 func (q Use) AppendToPacket(builder *strings.Builder) error {
-	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 2, builder)
-	AppendElement("USE", builder, false)
-	AppendElement(q.Path, builder, false)
+	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 2, builder)
+	if err != nil {
+		return err
+	}
+
+	err = AppendElements(builder, false, "USE", q.Path)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

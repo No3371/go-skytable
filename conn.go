@@ -260,7 +260,10 @@ func (c *Conn) BuildQuery(p *QueryPacket) (BuiltQuery, error) {
 	}
 
 	for _, q := range p.actions {
-		q.AppendToPacket(c.strBuilder)
+		err := q.AppendToPacket(c.strBuilder)
+		if err != nil {
+			return BuiltQuery{}, err
+		}
 	}
 
 	c.usedAt = time.Now()

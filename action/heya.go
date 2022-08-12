@@ -18,10 +18,21 @@ func NewHeya(echo string) *Heya {
 }
 
 func (q Heya) AppendToPacket(builder *strings.Builder) error {
-	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 2, builder)
-	AppendElement("HEYA", builder, false)
+	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 2, builder)
+	if err != nil {
+		return err
+	}
+
+	err = AppendElement("HEYA", builder, false)
+	if err != nil {
+		return err
+	}
+
 	if q.echo != "" {
-		AppendElement(q.echo, builder, false)
+		err = AppendElement(q.echo, builder, false)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

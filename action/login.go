@@ -20,11 +20,15 @@ func NewLogin(username string, token string) *Login {
 }
 
 func (q Login) AppendToPacket(builder *strings.Builder) error {
-	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 4, builder)
-	AppendElement("AUTH", builder, false)
-	AppendElement("LOGIN", builder, false)
-	AppendElement(q.username, builder, false)
-	AppendElement(q.token, builder, false)
+	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 4, builder)
+	if err != nil {
+		return err
+	}
+
+	err = AppendElements(builder, false, "AUTH", "LOGIN", q.username, q.token)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

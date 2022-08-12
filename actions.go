@@ -163,6 +163,41 @@ func (c *Conn) MGet(ctx context.Context, keys []string) (*protocol.TypedArray, e
 	return rp.resps[0].Value.(*protocol.TypedArray), nil
 }
 
+// MSet returns the actual number of the keys set.
+func (c *Conn) MSet(ctx context.Context, keys []string, values []any) (uint64, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.NewMSetB(keys, values),
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return 0, err
+	}
+
+	return rp.resps[0].Value.(uint64), nil
+}
+
+// MSet returns the actual number of the keys set.
+// This is just an alternative MSet with different signature.
+func (c *Conn) MSetA(ctx context.Context, entries []action.MSetAEntry) (uint64, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.NewMSetA(entries),
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return 0, err
+	}
+
+	return rp.resps[0].Value.(uint64), nil
+}
+
 func (c *Conn) Set(ctx context.Context, key string, value any) error {
 	p := &QueryPacket{
 		ctx: ctx,

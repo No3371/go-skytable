@@ -13,17 +13,18 @@ type InspectKeyspace struct {
 	Path string
 }
 
-func NewInspectKeyspace(path string) *InspectKeyspace {
-	return &InspectKeyspace{
-		Path: path,
+func FormatInspectKeyspace (path string) string {
+	if path == "" {
+		return "*1\n~3\n4\nINSPECT\n8\nKEYSPACE\n"
+	} else {
+		return fmt.Sprintf("*1\n~3\n4\nINSPECT\n8\nKEYSPACE\n%d\n%s\n", len(path), path)
 	}
 }
 
-func FormatInspectKeyspace (path string) string {
-	return fmt.Sprintf("*1\n~3\n4\nINSPECT\n8\nKEYSPACE\n%d\n%s\n", len(path), path)
-}
-
 func (q InspectKeyspace) AppendToPacket(builder *strings.Builder) error {
+	if q.Path == "" {
+		builder.WriteString("~3\n4\nINSPECT\n8\nKEYSPACE\n")
+	}
 	if strings.Contains(q.Path, ":") {
 		return errors.New("do not include : in the path when Inspecting keyspace")
 	}

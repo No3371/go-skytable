@@ -334,7 +334,7 @@ func (c *Conn) CreateKeyspace(ctx context.Context, path string) error {
 }
 
 func (c *Conn) DropKeyspace(ctx context.Context, path string) error {
-	cmd := action.FormatDropKeyspace(path)
+	cmd := action.FormatSingleDropKeyspacePacket(path)
 
 	rp, err := c.ExecRaw([]byte(cmd))
 	if err != nil {

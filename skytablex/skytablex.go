@@ -162,3 +162,17 @@ func (c *ConnX) UpdateWithSimTTL(ctx context.Context, key string, value []byte) 
 func (c *ConnX) ListAllKeyspaces(ctx context.Context) (*protocol.TypedArray, error) {
 	return c.InspectKeyspaces(ctx)
 }
+
+func (c *ConnX) InspectCurrentKeyspace(ctx context.Context) (*protocol.TypedArray, error) {
+	return c.InspectKeyspace(ctx, "")
+}
+
+
+type ConnPoolX struct {
+	skytable.ConnPool
+}
+
+
+func (c *ConnPoolX) InspectCurrentKeyspace(ctx context.Context) (*protocol.TypedArray, error) {
+	return c.InspectKeyspace(ctx, "")
+}

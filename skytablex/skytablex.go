@@ -12,7 +12,11 @@ import (
 	"github.com/No3371/go-skytable/response"
 )
 
-func GetWithSimTTL(c *skytable.Conn, ctx context.Context, key string) (resp any, tsUnix time.Time, err error) {
+type ConnX struct {
+	skytable.Conn
+}
+
+func (c *ConnX) GetWithSimTTL(ctx context.Context, key string) (resp any, tsUnix time.Time, err error) {
 	p := skytable.NewQueryPacket( []skytable.Action {
 		action.NewGet(key),
 		action.NewGet(key + "_timestamp"),
@@ -38,7 +42,7 @@ func GetWithSimTTL(c *skytable.Conn, ctx context.Context, key string) (resp any,
 	return rp.Resps()[0].Value, time.UnixMilli(int64(binary.BigEndian.Uint64(resps[1].Value.([]byte)))), nil
 }
 
-func SetWithSimTTL(c *skytable.Conn, ctx context.Context, key string, value any) error {
+func (c *ConnX) SetWithSimTTL(ctx context.Context, key string, value any) error {
     ts := make([]byte, 8)
     binary.BigEndian.PutUint64(ts, uint64(time.Now().UnixMilli()))
 
@@ -90,7 +94,7 @@ func SetWithSimTTL(c *skytable.Conn, ctx context.Context, key string, value any)
 	return nil
 }
 
-func UpdateWithSimTTL(c *skytable.Conn, ctx context.Context, key string, value any) error {
+func (c *ConnX) UpdateWithSimTTL(ctx context.Context, key string, value any) error {
     ts := make([]byte, 8)
     binary.BigEndian.PutUint64(ts, uint64(time.Now().UnixMilli()))
 
@@ -140,4 +144,9 @@ func UpdateWithSimTTL(c *skytable.Conn, ctx context.Context, key string, value a
 	}
 
 	return nil
+}
+
+// This is just an alias of InspectKeyspaces.
+func (c *ConnX) ListAllKeyspaces(ctx context.Context) (*protocol.TypedArray, error) {
+	return c.InspectKeyspaces(ctx)
 }

@@ -16,7 +16,10 @@ type ConnX struct {
 	skytable.Conn
 }
 
-func (c *ConnX) GetWithSimTTL(ctx context.Context, key string) (resp any, tsUnix time.Time, err error) {
+// Get the value of a key from the current table, if it exists
+//
+// SimTTL only works with BinaryString values
+func (c *ConnX) GetWithSimTTL(ctx context.Context, key string) (resp []byte, tsUnix time.Time, err error) {
 	p := skytable.NewQueryPacket( []skytable.Action {
 		action.NewGet(key),
 		action.NewGet(key + "_timestamp"),
@@ -24,25 +27,31 @@ func (c *ConnX) GetWithSimTTL(ctx context.Context, key string) (resp any, tsUnix
 
 	rp, err := c.BuildAndExecQuery(p)
 	if err != nil {
-		return response.EmptyResponseEntry, time.Time{}, err
+		return nil, time.Time{}, err
 	}
 
 	resps := rp.Resps()
 	if resps[0].Err != nil {
-		return response.EmptyResponseEntry, time.Time{}, fmt.Errorf("GetWithSimTTL: failed to get value with key '%s': %w", key, err)
+		return nil, time.Time{}, fmt.Errorf("GetWithSimTTL: failed to get value with key '%s': %w", key, err)
 	}
 	if resps[1].Err != nil {
-		return response.EmptyResponseEntry, time.Time{}, fmt.Errorf("GetWithSimTTL: failed to get simulated TTL with key '%s.timestamp': %w", key, err)
+		return nil, time.Time{}, fmt.Errorf("GetWithSimTTL: failed to get simulated TTL with key '%s.timestamp': %w", key, err)
 	}
 
+	if resps[0].DataType != protocol.DataTypeBinaryString {
+		return nil, time.Time{}, fmt.Errorf("GetWithSimTTL: expecting BinaryString value but got %s", resps[0].DataType)
+	}
 	if resps[1].DataType != protocol.DataTypeBinaryString {
-		return response.EmptyResponseEntry, time.Time{}, fmt.Errorf("GetWithSimTTL: expecting simulated TTL to be BinaryString but got %s", resps[1].DataType)
+		return nil, time.Time{}, fmt.Errorf("GetWithSimTTL: expecting simulated TTL to be BinaryString but got %s", resps[1].DataType)
 	}
 
-	return rp.Resps()[0].Value, time.UnixMilli(int64(binary.BigEndian.Uint64(resps[1].Value.([]byte)))), nil
+	return rp.Resps()[0].Value.([]byte), time.UnixMilli(int64(binary.BigEndian.Uint64(resps[1].Value.([]byte)))), nil
 }
 
-func (c *ConnX) SetWithSimTTL(ctx context.Context, key string, value any) error {
+// Set the value of a key in the current table, if it doesn't already exist
+//
+// SimTTL only works with BinaryString values
+func (c *ConnX) SetWithSimTTL(ctx context.Context, key string, value []byte) error {
     ts := make([]byte, 8)
     binary.BigEndian.PutUint64(ts, uint64(time.Now().UnixMilli()))
 
@@ -94,7 +103,10 @@ func (c *ConnX) SetWithSimTTL(ctx context.Context, key string, value any) error 
 	return nil
 }
 
-func (c *ConnX) UpdateWithSimTTL(ctx context.Context, key string, value any) error {
+// Update the value of an existing key in the current table
+//
+// SimTTL only works with BinaryString values
+func (c *ConnX) UpdateWithSimTTL(ctx context.Context, key string, value []byte) error {
     ts := make([]byte, 8)
     binary.BigEndian.PutUint64(ts, uint64(time.Now().UnixMilli()))
 

@@ -203,6 +203,7 @@ func (c *Conn) MSetA(ctx context.Context, entries []action.MSetAEntry) (set uint
 	return rp.resps[0].Value.(uint64), nil
 }
 
+// Set the value of a key in the current table, if it doesn't already exist
 func (c *Conn) Set(ctx context.Context, key string, value any) error {
 	p := &QueryPacket{
 		ctx: ctx,
@@ -234,6 +235,7 @@ func (c *Conn) Set(ctx context.Context, key string, value any) error {
 	}
 }
 
+// Update the value of an existing key in the current table
 func (c *Conn) Update(ctx context.Context, key string, value any) error {
 	p := &QueryPacket{
 		ctx: ctx,

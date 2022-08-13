@@ -12,6 +12,8 @@ Tested with: Skytable 0.7.5.
 
 DDL actions implemented.
 
+The interfaces may be changed anytime before first release.
+
 ## Installation
 
 ```
@@ -146,6 +148,12 @@ resp, err := c.BuildAndExecQuery(p)
 - [X] SYS INFO PROTOVER
 - [ ] SYS METRIC HEALTH
 - [ ] SYS METRIC STORAGE
+
+## SkytableX
+
+The subpackage provides opinionated extensions that could be useful or convenient.
+
+For example, `*ConnX.GetWithSimTTL()`, `*ConnX.SetWithSimTTL()`, `*ConnX.UpdateWithSimTTL`() are alternative versions of their respective methods of Conn, these methods only works with []byte values and automatically add an action to maintain timestamp with key "key_timestamp".
 
 ## DDL with Connection Pool
 

@@ -27,17 +27,8 @@ func (q DropTable) AppendToPacket(builder *strings.Builder) error {
 		return errors.New("use explicit full path to the table to drop it (keyspace:table)")
 	}
 
-	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 3, builder)
-	if err != nil {
-		return err
-	}
-
-	err = AppendElements(builder, false, "DROP", "TABLE", q.Path)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	_, err := fmt.Fprintf(builder, "~3\n4\nDROP\n5\nTABLE\n%d\n%s\n", len(q.Path), q.Path)
+	return err
 }
 
 func (q DropTable) ValidateProtocol(response interface{}) error {

@@ -9,29 +9,21 @@ import (
 )
 
 type DropKeyspace struct {
-	Path string
+	Name string
 }
 
 // ⚠️ Only use this when sending packets contains this action only.
-func FormatSingleDropKeyspacePacket (path string) string {
+func FormatSingleDropKeyspacePacket(path string) string {
 	return fmt.Sprintf("*1\n~3\n4\nDROP\n8\nKEYSPACE\n%d\n%s\n", len(path), path)
 }
 
 func (q DropKeyspace) AppendToPacket(builder *strings.Builder) error {
-	if strings.Contains(q.Path, ":") {
+	if strings.Contains(q.Name, ":") {
 		return errors.New("do not include : in the path when dropping keyspace")
 	}
 
-	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 3, builder)
-	if err != nil {
-		return err
-	}
-
-	err = AppendElements(builder, false, "DROP", "KEYSPACE", q.Path)
-	if err != nil {
-		return err
-	}
-	return nil
+	_, err := fmt.Fprintf(builder, "~3\n4\nDROP\n8\nKEYSPACE\n%d\n%s\n", len(q.Name), q.Name)
+	return err
 }
 
 func (q DropKeyspace) ValidateProtocol(response interface{}) error {

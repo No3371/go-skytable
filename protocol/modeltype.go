@@ -10,6 +10,11 @@ const (
 	ModelTypeKeyMap ModelType = iota
 )
 
+type ModelDescription interface {
+	Model() string
+	Properties() string
+}
+
 type KeyMapDescription struct {
 	KeyType   DDLDataTypes
 	ValueType DDLDataTypes

@@ -38,71 +38,74 @@ func GetTestToken() (string, bool) {
 	return string(read), true
 }
 
-func NewConnAuth () (*skytable.Conn, error) {
+
+func NewConnNoAuth() (*skytable.Conn, error) {
+	return skytable.NewConn(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: NonAuthInstancePort})
+}
+
+func NewConnAuth() (*skytable.Conn, error) {
 	token, gotToken := GetTestToken()
 	if !gotToken {
 		return nil, errors.New("failed to get test user token")
 	}
 
-    auth := func() (u, t string) {
-            u = testUserName
-            t = token
-            return u, t
-        }
+	auth := func() (u, t string, err error) {
+		u = testUserName
+		t = token
+		return u, t, nil
+	}
 
 	return skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
 }
 
-func NewConnNoAuth () (*skytable.Conn, error) {
-	return skytable.NewConn(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: NonAuthInstancePort})
+func NewConnPoolNoAuth() (*skytable.ConnPool, error) {
+	localAddr := &net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: NonAuthInstancePort}
+	c := skytable.NewConnPool(localAddr, skytable.DefaultConnPoolOptions)
+
+	return c, nil
+}
+
+func NewConnPoolAuth() (*skytable.ConnPool, error) {
+	localAddr := &net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}
+	authProvider:= func() (username, token string, err error) {
+		t, gotToken := GetTestToken()
+		if !gotToken {
+			return "", "", errors.New("failed to get token of" + testUserName)
+		}
+		return testUserName, t, nil
+	}
+	c := skytable.NewConnPool(localAddr, skytable.ConnPoolOptions{
+		AuthProvider: authProvider,
+	})
+
+	return c, nil
 }
 
 func TestConnPoolLocalAuth(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	localAddr := &net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}
-	c := skytable.NewConnPool(localAddr, skytable.ConnPoolOptions{
-		AuthProvider: func() (username, token string) {
-			t, gotToken := GetTestToken()
-			if !gotToken {
-				panic("failed to get token of" + testUserName)
-			}
-			return testUserName, t
-		},
-	})
-
-	token, gotToken := GetTestToken()
-	if !gotToken {
-		t.Fatalf("failed to get token of" + testUserName)
+	cp, err := NewConnPoolAuth()
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	err := c.AuthLogin(ctx, testUserName, token)
+	err = cp.Heya(ctx, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestConnPoolLocalSetGetBurst(t *testing.T) {
-    bursts := []int{ 144, 256, 1024 }
+	bursts := []int{144, 256, 1024}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	token, gotToken := GetTestToken()
-	if !gotToken {
-		t.Fatalf("failed to get token of" + testUserName)
+	c, err := NewConnPoolAuth()
+	if err != nil {
+		t.Fatal(err)
 	}
-
-	localAddr := &net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}
-    
-	c := skytable.NewConnPool(localAddr, skytable.ConnPoolOptions{
-		AuthProvider: func() (u, t string) {
-			u = testUserName
-			t = token
-			return u, t
-		},
-	})
 
 	k := "t1233 あ得"
 	v := "り8しれ 工さ小"
@@ -126,56 +129,56 @@ func TestConnPoolLocalSetGetBurst(t *testing.T) {
 
 	t.Log("SET sent!")
 
-    for _, b := range bursts {
-        sTime := time.Now()
-        errChan := make(chan error)
-        wg := &sync.WaitGroup{}
-        for i := 0; i < b; i++ {
-            wg.Add(1)
-            go func () {
-                defer wg.Done()
-                respV, err := c.GetBytes(ctx, k)
-                if err != nil {
-                    errChan<-err
-                    close(errChan)
-                } else if string(respV) != v {
-                    errChan<-errors.New("result mismatch")
-                    close(errChan)
-                }
-            } ()
-        }
-        wg.Wait()
-        t.Logf("1st GETs (x%d): %s", b, time.Since(sTime))
-        select {
-        case e := <-errChan:
-            t.Fatal(e)
-        default:
-        }
+	for _, b := range bursts {
+		sTime := time.Now()
+		errChan := make(chan error)
+		wg := &sync.WaitGroup{}
+		for i := 0; i < b; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				respV, err := c.GetBytes(ctx, k)
+				if err != nil {
+					errChan <- err
+					close(errChan)
+				} else if string(respV) != v {
+					errChan <- errors.New("result mismatch")
+					close(errChan)
+				}
+			}()
+		}
+		wg.Wait()
+		t.Logf("1st GETs (x%d): %s", b, time.Since(sTime))
+		select {
+		case e := <-errChan:
+			t.Fatal(e)
+		default:
+		}
 
-        errChan = make(chan error)
-        sTime = time.Now()
-        for i := 0; i < b; i++ {
-            wg.Add(1)
-            go func () {
-                defer wg.Done()
-                respV, err := c.GetBytes(ctx, k)
-                if err != nil {
-                    errChan<-err
-                    close(errChan)
-                } else if string(respV) != v {
-                    errChan<-errors.New("result mismatch")
-                    close(errChan)
-                }
-            } ()
-        }
-        wg.Wait()
-        t.Logf("2nd GETs (x%d): %s", b, time.Since(sTime))
-        select {
-        case e := <-errChan:
-            t.Fatal(e)
-        default:
-        }
-    }
+		errChan = make(chan error)
+		sTime = time.Now()
+		for i := 0; i < b; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				respV, err := c.GetBytes(ctx, k)
+				if err != nil {
+					errChan <- err
+					close(errChan)
+				} else if string(respV) != v {
+					errChan <- errors.New("result mismatch")
+					close(errChan)
+				}
+			}()
+		}
+		wg.Wait()
+		t.Logf("2nd GETs (x%d): %s", b, time.Since(sTime))
+		select {
+		case e := <-errChan:
+			t.Fatal(e)
+		default:
+		}
+	}
 }
 
 func TestConnLocalNoAuth(t *testing.T) {
@@ -189,34 +192,21 @@ func TestConnLocalAuth(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-    auth := func() (username, token string) {
-        t, gotToken := GetTestToken()
-        if !gotToken {
-            panic("failed to get token of" + testUserName)
-        }
-        return testUserName, t
-    }
-
-	c, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
+	c, err := NewConnAuth()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	token, gotToken := GetTestToken()
-	if !gotToken {
-		t.Fatalf("failed to get token of '%s'", testUserName)
-	}
-
-	err = c.AuthLogin(ctx, testUserName, token)
+	err = c.Heya(ctx, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
-func TestConnLocalAuthFail (t *testing.T) {
-    auth := func() (username, token string) {
-        return "a", "_b_"
-    }
+func TestConnLocalAuthFail(t *testing.T) {
+	auth := func() (username, token string, err error) {
+		return "a", "_b_", nil
+	}
 
 	_, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
 	if err == nil {
@@ -225,7 +215,7 @@ func TestConnLocalAuthFail (t *testing.T) {
 }
 
 func TestConnLocalSetSeqGet(t *testing.T) {
-    seqSize := []int { 16, 32, 64, 128, 1024 }
+	seqSize := []int{16, 32, 64, 128, 1024}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -257,17 +247,17 @@ func TestConnLocalSetSeqGet(t *testing.T) {
 
 	t.Log("SET sent!")
 
-    var sTime time.Time
-    for _, seq := range seqSize {
-        sTime = time.Now()
-        for i := 0; i < seq; i++ {
-            _, err := c.GetBytes(ctx, k) 
-            if err != nil {
-                t.Fatal(err)
-            }
-        }
-        t.Logf("GETs (x%d): %s", seq, time.Since(sTime))
-    }
+	var sTime time.Time
+	for _, seq := range seqSize {
+		sTime = time.Now()
+		for i := 0; i < seq; i++ {
+			_, err := c.GetBytes(ctx, k)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+		t.Logf("GETs (x%d): %s", seq, time.Since(sTime))
+	}
 }
 
 func TestDelSetGetSinglePacket(t *testing.T) {
@@ -279,8 +269,8 @@ func TestDelSetGetSinglePacket(t *testing.T) {
 	k := "t1233 あ得"
 	v := "り8しれ 工さ小"
 
-	p := skytable.NewQueryPacket([]skytable.Action {
-		action.NewDel([]string { k }),
+	p := skytable.NewQueryPacket([]skytable.Action{
+		action.NewDel([]string{k}),
 		action.NewSet(k, v),
 		action.NewGet(k),
 	})
@@ -303,28 +293,12 @@ func TestDelSetGetSinglePacket(t *testing.T) {
 }
 
 func TestConnLocalSetMGet(t *testing.T) {
-    seqSize := []int { 64, 512, 1024, 4096 }
+	seqSize := []int{64, 512, 1024, 4096}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	token, gotToken := GetTestToken()
-	if !gotToken {
-		t.Fatalf("failed to get token of '%s'", testUserName)
-	}
-
-    auth := func() (u, t string) {
-            u = testUserName
-            t = token
-            return u, t
-        }
-
-	c, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = c.AuthLogin(ctx, testUserName, token)
+	c, err := NewConnAuth()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -351,44 +325,44 @@ func TestConnLocalSetMGet(t *testing.T) {
 
 	t.Log("SET sent!")
 
-    keys := make([]string, seqSize[len(seqSize) - 1])
-    for j := 0; j < len(keys); j++ {
-        keys[j] = k
-    }
+	keys := make([]string, seqSize[len(seqSize)-1])
+	for j := 0; j < len(keys); j++ {
+		keys[j] = k
+	}
 
-    var sTime time.Time
-    for _, seq := range seqSize {
-        if seq > len(keys) {
-            keys := make([]string, seq)
-            for j := 0; j < len(keys); j++ {
-                keys[j] = k
-            }
-        }
+	var sTime time.Time
+	for _, seq := range seqSize {
+		if seq > len(keys) {
+			keys := make([]string, seq)
+			for j := 0; j < len(keys); j++ {
+				keys[j] = k
+			}
+		}
 
-        p := skytable.NewQueryPacket(
-            []skytable.Action{
-                action.NewMGet(keys[:seq]),
-        })
-    
-        sTime = time.Now()
-        bq, err := c.BuildQuery(p)
-        if err != nil {
-            t.Fatal(err)
-        }
-        t.Logf("Building MGET (size: %d): %s", seq, time.Since(sTime))
+		p := skytable.NewQueryPacket(
+			[]skytable.Action{
+				action.NewMGet(keys[:seq]),
+			})
 
-        sTime = time.Now()
-        rp, err := c.ExecQuery(bq)
-        if err != nil {
-            t.Fatal(err)
-        }
-        t.Logf("Executing MGET (size: %d): %s", seq, time.Since(sTime))
+		sTime = time.Now()
+		bq, err := c.BuildQuery(p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Logf("Building MGET (size: %d): %s", seq, time.Since(sTime))
 
-        if rp.Resps()[0].Err != nil {
-            t.Fatal(rp.Resps()[0].Err)
+		sTime = time.Now()
+		rp, err := c.ExecQuery(bq)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Logf("Executing MGET (size: %d): %s", seq, time.Since(sTime))
 
-        }
-    }
+		if rp.Resps()[0].Err != nil {
+			t.Fatal(rp.Resps()[0].Err)
+
+		}
+	}
 }
 
 func TestConnLocalExistsDelSetGet(t *testing.T) {
@@ -405,7 +379,7 @@ func TestConnLocalExistsDelSetGet(t *testing.T) {
 	k := "t1233 あ得"
 	v := "り8しれ 工さ小"
 
-    c.Err()
+	c.Err()
 
 	existed, err := c.Exists(ctx, []string{k})
 	if err != nil {
@@ -440,22 +414,11 @@ func TestConnLocalExistsDelSetGet(t *testing.T) {
 	}
 }
 
-func TestBytes (t *testing.T) {
+func TestBytes(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-    
-	token, gotToken := GetTestToken()
-	if !gotToken {
-		t.Fatalf("failed to get token of '%s'", testUserName)
-	}
 
-    auth := func() (u, t string) {
-            u = testUserName
-            t = token
-            return u, t
-        }
-
-	c, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
+	c, err := NewConnAuth()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -504,11 +467,11 @@ func TestBytes (t *testing.T) {
 	}
 }
 
-func TestCreateKeyspace (t *testing.T) {
+func TestCreateKeyspace(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	c, err := NewConnAuth()
+	c, err := NewConnNoAuth()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -525,7 +488,7 @@ func TestCreateKeyspace (t *testing.T) {
 		t.Fatal(err)
 	}
 }
-func TestKeyspaceCreateInspectUseDropConnCallsNoAuth (t *testing.T) {
+func TestKeyspaceCreateInspectUseDropConnCallsNoAuth(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -580,11 +543,11 @@ func TestKeyspaceCreateInspectUseDropConnCallsNoAuth (t *testing.T) {
 	}
 }
 
-func TestKeyspaceCreateInspectUseDropConnCalls (t *testing.T) {
+func TestKeyspaceCreateInspectUseDropConnCalls(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	c, err := NewConnAuth()
+	c, err := NewConnNoAuth()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -627,30 +590,18 @@ func TestKeyspaceCreateInspectUseDropConnCalls (t *testing.T) {
 }
 
 func TestKeyspaceCreateUseDropSinglePacket(t *testing.T) {
-
-	token, gotToken := GetTestToken()
-	if !gotToken {
-		t.Fatalf("failed to get token of '%s'", testUserName)
-	}
-
-    auth := func() (u, t string) {
-            u = testUserName
-            t = token
-            return u, t
-        }
-
-	c, err := skytable.NewConnAuth(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}, auth)
+	c, err := NewConnNoAuth()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	k := "t1_fq46r233_fortestonly"
 
-	p := skytable.NewQueryPacket([]skytable.Action {
-		action.CreateKeyspace{ Path: k },
-		action.Use{ Path: k },
-		action.Use{ Path: "default" },
-		action.DropKeyspace{ Path: k },
+	p := skytable.NewQueryPacket([]skytable.Action{
+		action.CreateKeyspace{Path: k},
+		action.Use{Path: k},
+		action.Use{Path: "default"},
+		action.DropKeyspace{Name: k},
 	})
 
 	rp, err := c.BuildAndExecQuery(p)
@@ -698,7 +649,7 @@ func TestPacketError(t *testing.T) {
 	if !errors.Is(err, protocol.ErrCodePacketError) {
 		t.Fatalf("expecting PacketError but got %s", err)
 	}
-	
+
 	resp, err = c.ExecRaw([]byte("*1\n~1\n2\nABC\n3\nABC\n"))
 	if err == nil {
 		t.Logf("Resp: %v", resp)

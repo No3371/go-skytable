@@ -30,7 +30,12 @@ func (c *Conn) Heya(ctx context.Context, echo string) error {
 	return nil
 }
 
-func (c *Conn) AuthLogin(ctx context.Context, username string, token string) error {
+func (c *Conn) AuthLogin(ctx context.Context, authProvider AuthProvider) error {
+	username, token, err := authProvider()
+	if err != nil {
+		return fmt.Errorf("*ConnNew.AuthLogin(): auth provider returned an error: %w", err)
+	}
+
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
@@ -62,7 +67,7 @@ func (c *Conn) AuthLogin(ctx context.Context, username string, token string) err
 	}
 }
 
-func (c *Conn) Exists(ctx context.Context, keys []string) (uint64, error) {
+func (c *Conn) Exists(ctx context.Context, keys []string) (existing uint64, err error) {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
@@ -78,7 +83,7 @@ func (c *Conn) Exists(ctx context.Context, keys []string) (uint64, error) {
 	return rp.resps[0].Value.(uint64), nil
 }
 
-func (c *Conn) Del(ctx context.Context, keys []string) (uint64, error) {
+func (c *Conn) Del(ctx context.Context, keys []string) (deleted uint64, err error) {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
@@ -164,7 +169,7 @@ func (c *Conn) MGet(ctx context.Context, keys []string) (*protocol.TypedArray, e
 }
 
 // MSet returns the actual number of the keys set.
-func (c *Conn) MSet(ctx context.Context, keys []string, values []any) (uint64, error) {
+func (c *Conn) MSet(ctx context.Context, keys []string, values []any) (set uint64, err error) {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
@@ -182,7 +187,7 @@ func (c *Conn) MSet(ctx context.Context, keys []string, values []any) (uint64, e
 
 // MSet returns the actual number of the keys set.
 // This is just an alternative MSet with different signature.
-func (c *Conn) MSetA(ctx context.Context, entries []action.MSetAEntry) (uint64, error) {
+func (c *Conn) MSetA(ctx context.Context, entries []action.MSetAEntry) (set uint64, err error) {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
@@ -297,9 +302,19 @@ func (c *Conn) ExecSingleRawQuery(segments ...string) (response.ResponseEntry, e
 	return rr.resps[0], nil
 }
 
-// func (c *Conn) ExecRawQuery(actions ...string) (any, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
+func (c *Conn) ExecRawQuery(actions ...string) ([]response.ResponseEntry, error) {
+	raw, err := c.BuildMultipleRaw(actions)
+	if err != nil {
+		return nil, err
+	}
+
+	rr, err := c.ExecRaw([]byte(raw))
+	if err != nil {
+		return nil, err
+	}
+
+	return rr.resps, nil
+}
 
 func (c *Conn) InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, error) {
 	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action{action.InspectKeyspaces{}}))
@@ -314,13 +329,8 @@ func (c *Conn) InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, erro
 	return rp.resps[0].Value.(*protocol.TypedArray), nil
 }
 
-// This is just an alias of InspectKeyspaces.
-func (c *Conn) ListAllKeyspaces(ctx context.Context) (*protocol.TypedArray, error) {
-	return c.InspectKeyspaces(ctx)
-}
-
-func (c *Conn) CreateKeyspace(ctx context.Context, path string) error {
-	cmd := action.FormatSingleCreateKeyspacePacket(path)
+func (c *Conn) CreateKeyspace(ctx context.Context, name string) error {
+	cmd := action.FormatSingleCreateKeyspacePacket(name)
 	rp, err := c.ExecRaw([]byte(cmd))
 	if err != nil {
 		return err
@@ -343,8 +353,8 @@ func (c *Conn) CreateKeyspace(ctx context.Context, path string) error {
 	return nil
 }
 
-func (c *Conn) DropKeyspace(ctx context.Context, path string) error {
-	cmd := action.FormatSingleDropKeyspacePacket(path)
+func (c *Conn) DropKeyspace(ctx context.Context, name string) error {
+	cmd := action.FormatSingleDropKeyspacePacket(name)
 
 	rp, err := c.ExecRaw([]byte(cmd))
 	if err != nil {
@@ -463,16 +473,21 @@ func (c *Conn) DropTable(ctx context.Context, path string) error {
 	return nil
 }
 
-// func (c *Conn) UseTable(ctx context.Context, name string) error {
-// 	panic("not implemented") // TODO: Implement
-// }
-
 // func (c *Conn) InspectCurrentTable(ctx context.Context) (interface{}, error) {
 // 	panic("not implemented") // TODO: Implement
 // }
 
-// func (c *Conn) InspectTable(ctx context.Context, name string) (interface{}, error) {
-// 	panic("not implemented") // TODO: Implement
+// func (c *Conn) InspectTable(ctx context.Context, name string) (protocol.ModelDescription, error) {
+// 	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action{action.InspectTable{Name: name}}))
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	if rp.resps[0].Err != nil {
+// 		return nil, rp.resps[0].Err
+// 	}
+
+// 	return rp.resps[0].Value.(*protocol.TypedArray), nil
 // }
 
 func (c *Conn) SysInfoVersion(ctx context.Context) (string, error) {

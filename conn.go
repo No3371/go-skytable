@@ -128,7 +128,7 @@ func NewConn(remote *net.TCPAddr) (*Conn, error) {
 	return conn, nil
 }
 
-func NewConnAuth(remote *net.TCPAddr, authProvider func() (username, token string)) (*Conn, error) {
+func NewConnAuth(remote *net.TCPAddr, authProvider AuthProvider) (*Conn, error) {
 
 	nc, err := net.DialTCP("tcp", nil, remote)
 	if err != nil {
@@ -146,8 +146,7 @@ func NewConnAuth(remote *net.TCPAddr, authProvider func() (username, token strin
 	}
 
 	if authProvider != nil {
-		u, t := authProvider()
-		err = conn.AuthLogin(context.Background(), u, t)
+		err = conn.AuthLogin(context.Background(), authProvider)
 		if err != nil {
 			return nil, fmt.Errorf("conn pool: conn: failed to auth login: %w", err)
 		}
@@ -170,6 +169,36 @@ func (c *Conn) BuildSingleRaw(segs ...string) (raw string, err error) {
 	for i, s := range segs {
 		if i != 0 {
 			_, err = c.strBuilder.WriteRune(' ')
+			if err != nil {
+				return "", err
+			}
+		}
+		_, err = c.strBuilder.WriteString(s)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return c.strBuilder.String(), nil
+}
+
+func (c *Conn) BuildMultipleRaw(actions []string) (raw string, err error) {
+	if len(actions) == 0 {
+		return "", NewUsageError("BuildMultipleRaw: building 0 actions", nil)
+	}
+	if len(actions) == 1 {
+		return c.BuildSingleRaw(actions[0])
+	}
+
+	c.strBuilder.Reset()
+	_, err = fmt.Fprintf(c.strBuilder, "*%d\n", len(actions))
+	if err != nil {
+		return "", err
+	}
+
+	for i, s := range actions {
+		if i != 0 {
+			_, err = c.strBuilder.WriteRune('\n')
 			if err != nil {
 				return "", err
 			}

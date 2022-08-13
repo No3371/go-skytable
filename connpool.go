@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/No3371/go-skytable/action"
 	"github.com/No3371/go-skytable/protocol"
 	"github.com/No3371/go-skytable/response"
 )
@@ -27,7 +28,7 @@ type ConnPool struct {
 
 type ConnPoolOptions struct {
 	Cap          int64 // The maximun of opened Conns at the same time
-	AuthProvider func() (username, token string) // Do not keep auth info in memory
+	AuthProvider func() (username, token string, err error) // Do not keep auth info in memory
 	DefaultEntity string // "KEYSPACE" or "KEYSPACE:CONTAINER"
 }
 
@@ -169,17 +170,18 @@ func (c *ConnPool) Heya(ctx context.Context, echo string) (err error) {
 	return conn.Heya(ctx, echo)
 }
 
-func (c *ConnPool) AuthLogin(ctx context.Context, username string, token string) error {
-	conn, err := c.popConn(false)
-	if err != nil {
-		return fmt.Errorf("*ConnPool.AuthLogin(): %w", err)
-	}
-	defer c.pushConn(conn)
-
-	return conn.AuthLogin(ctx, username, token)
+// *ConnPool.AuthLogin() will take all conns and do *Conn.AuthLogin() on each, and overwrite the AuthProvider of the pool.
+//
+// Noted that if there's an error, it's possible that the iteration is not completed and the connections may be using different users.
+func (c *ConnPool) AuthLogin(ctx context.Context, authProvider AuthProvider) error {
+	c.opts.AuthProvider = authProvider
+	err := c.DoEachConn(func(conn *Conn) error {
+		return conn.AuthLogin(ctx, authProvider)
+	})
+	return err
 }
 
-func (c *ConnPool) Exists(ctx context.Context, keys []string) (uint64, error) {
+func (c *ConnPool) Exists(ctx context.Context, keys []string) (existing uint64, err error) {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return 0, fmt.Errorf("*ConnPool.Exists(): %w", err)
@@ -189,7 +191,7 @@ func (c *ConnPool) Exists(ctx context.Context, keys []string) (uint64, error) {
 	return conn.Exists(ctx, keys)
 }
 
-func (c *ConnPool) Del(ctx context.Context, keys []string) (uint64, error) {
+func (c *ConnPool) Del(ctx context.Context, keys []string) (deleted uint64, err error) {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return 0, fmt.Errorf("*ConnPool.Del(): %w", err)
@@ -241,6 +243,26 @@ func (c *ConnPool) MGet(ctx context.Context, keys []string) (*protocol.TypedArra
 	return conn.MGet(ctx, keys)
 }
 
+func (c *ConnPool) MSet(ctx context.Context, keys []string, values []any) (set uint64, err error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return 0, fmt.Errorf("*ConnPool.MGet(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.MSet(ctx, keys, values)
+}
+
+func (c *ConnPool) MSetA(ctx context.Context, entries []action.MSetAEntry) (set uint64, err error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return 0, fmt.Errorf("*ConnPool.MGet(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.MSetA(ctx, entries)
+}
+
 func (c *ConnPool) Set(ctx context.Context, key string, value any) error {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -260,14 +282,6 @@ func (c *ConnPool) Update(ctx context.Context, key string, value any) error {
 
 	return conn.Update(ctx, key, value)
 }
-
-// func (c *ConnPool) UpdateString(ctx context.Context, key string, value string) error {
-// 	panic("not implemented") // TODO: Implement
-// }
-
-// func (c *ConnPool) UpdateBytes(ctx context.Context, key string, value []byte) error {
-// 	panic("not implemented") // TODO: Implement
-// }
 
 // func (c *ConnPool) Pop(ctx context.Context, key string) (protocol.DataType, any, error) {
 // 	panic("not implemented") // TODO: Implement
@@ -293,15 +307,17 @@ func (c *ConnPool) ExecSingleRawQuery(segments ...string) (response.ResponseEntr
 	return conn.ExecSingleRawQuery(segments...)
 }
 
-// func (c *ConnPool) ExecRawQuery(actions ...string) (any, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
+func (c *ConnPool) ExecRawQuery(actions ...string) ([]response.ResponseEntry, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return nil, fmt.Errorf("*ConnPool.ExecRawQuery(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.ExecRawQuery(actions...)
+}
 
 // func (c *ConnPool) InspectKeyspaces(ctx context.Context) (protocol.Array, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
-
-// func (c *ConnPool) ListAllKeyspaces(ctx context.Context) (protocol.Array, error) {
 // 	panic("not implemented") // TODO: Implement
 // }
 
@@ -309,27 +325,37 @@ func (c *ConnPool) ExecSingleRawQuery(segments ...string) (response.ResponseEntr
 // 	panic("not implemented") // TODO: Implement
 // }
 
-func (c *ConnPool) CreateKeyspace(ctx context.Context, path string) error {
+func (c *ConnPool) InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return nil, fmt.Errorf("*ConnPool.InspectKeyspaces(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.InspectKeyspaces(ctx)
+}
+
+func (c *ConnPool) CreateKeyspace(ctx context.Context, name string) error {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return fmt.Errorf("*ConnPool.CreateKeyspace(): %w", err)
 	}
 	defer c.pushConn(conn)
 
-	return conn.CreateKeyspace(ctx, path)
+	return conn.CreateKeyspace(ctx, name)
 }
 
-func (c *ConnPool) DropKeyspace(ctx context.Context, path string) error {
+func (c *ConnPool) DropKeyspace(ctx context.Context, name string) error {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return fmt.Errorf("*ConnPool.Dropkeyspace(): %w", err)
 	}
 	defer c.pushConn(conn)
 
-	return conn.DropKeyspace(ctx, path)
+	return conn.DropKeyspace(ctx, name)
 }
 
-// *Conn.Use() is for sending "USE KEYSPACE" or "USE KEYSPACE:TABLE", which change the container the connection is using.
+// *Conn.Use() is for sending "USE KEYSPACE" or "USE KEYSPACE:TABLE", which change the container which the connection is using.
 //
 // This method will take all conns and do *Conn.Use() on each, and overwrite the DefaultEntity of the pool.
 //

@@ -18,7 +18,7 @@ type QueryPacket struct {
 	actions []Action
 }
 
-func NewQueryPacket (actions []Action) *QueryPacket {
+func NewQueryPacket(actions []Action) *QueryPacket {
 	return &QueryPacket{
 		actions: actions,
 	}
@@ -33,8 +33,7 @@ type ResponsePacket struct {
 	resps []response.ResponseEntry
 }
 
-
-func (rr ResponsePacket) Resps () []response.ResponseEntry {
+func (rr ResponsePacket) Resps() []response.ResponseEntry {
 	return rr.resps
 }
 
@@ -44,22 +43,22 @@ type Action interface {
 }
 
 type Skytable interface {
-	Heya(ctx context.Context, echo string) error
-	AuthLogin(ctx context.Context, authProvider AuthProvider) error
+	Heya(ctx context.Context, echo string) error                    // https://docs.skytable.io/actions/heya
+	AuthLogin(ctx context.Context, authProvider AuthProvider) error // https://docs.skytable.io/actions/auth#login
 
-	Exists(ctx context.Context, keys []string) (existing uint64, err error)
-	Del(ctx context.Context, keys []string) (deleted uint64, err error)
+	Exists(ctx context.Context, keys []string) (existing uint64, err error) // https://docs.skytable.io/actions/exists
+	Del(ctx context.Context, keys []string) (deleted uint64, err error)     // https://docs.skytable.io/actions/del
 
-	Get(ctx context.Context, key string) (response.ResponseEntry, error)
-	GetString(ctx context.Context, key string) (string, error)
-	GetBytes(ctx context.Context, key string) ([]byte, error)
+	Get(ctx context.Context, key string) (response.ResponseEntry, error) // https://docs.skytable.io/actions/get
+	GetString(ctx context.Context, key string) (string, error)           // a strict version of [Get] that only success if the value is stored as String in Skytable.
+	GetBytes(ctx context.Context, key string) ([]byte, error)            // a strict version of [Get] that only success if the value is stored as BinaryString in Skytable.
 
-	MGet(ctx context.Context, keys []string) (*protocol.TypedArray, error)
-	MSet(ctx context.Context, keys []string, values []any) (set uint64, err error)
-	MSetA(ctx context.Context, entries []action.MSetAEntry) (set uint64, err error)
+	MGet(ctx context.Context, keys []string) (*protocol.TypedArray, error)          // https://docs.skytable.io/actions/mset
+	MSet(ctx context.Context, keys []string, values []any) (set uint64, err error)  // https://docs.skytable.io/actions/mset
+	MSetA(ctx context.Context, entries []action.MSetAEntry) (set uint64, err error) // https://docs.skytable.io/actions/mset
 
-	Set (ctx context.Context, key string, value any) error
-	Update (ctx context.Context, key string, value any) error
+	Set(ctx context.Context, key string, value any) error    // https://docs.skytable.io/actions/set
+	Update(ctx context.Context, key string, value any) error // https://docs.skytable.io/actions/update
 
 	// Pop(ctx context.Context, key string) (response.ResponseEntry, error)
 
@@ -69,20 +68,18 @@ type Skytable interface {
 
 	Use(ctx context.Context, path string) error
 
-	InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, error)
-	CreateKeyspace(ctx context.Context, name string) error
-	DropKeyspace(ctx context.Context, name string) error
-	InspectCurrentKeyspace(ctx context.Context) (*protocol.TypedArray, error)
-	InspectKeyspace(ctx context.Context, name string) (*protocol.TypedArray, error)
+	InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, error) // https://docs.skytable.io/ddl/#inspect
+	CreateKeyspace(ctx context.Context, name string) error // https://docs.skytable.io/ddl/#keyspaces
+	DropKeyspace(ctx context.Context, name string) error // https://docs.skytable.io/ddl/#keyspaces-1
+	InspectKeyspace(ctx context.Context, name string) (*protocol.TypedArray, error) // https://docs.skytable.io/ddl/#keyspaces-2
 
-	CreateTable(ctx context.Context, path string, modelDesc any) error
-	DropTable(ctx context.Context, path string) error
-	// InspectCurrentTable (ctx context.Context) (interface{}, error)
+	CreateTable(ctx context.Context, path string, modelDesc any) error // https://docs.skytable.io/ddl/#tables
+	DropTable(ctx context.Context, path string) error // https://docs.skytable.io/ddl/#tables-1
 	// InspectTable (ctx context.Context, name string) (interface{}, error)
 
-	SysInfoVersion(ctx context.Context) (string, error)
-	SysInfoProtocol(ctx context.Context) (string, error)
-	SysInfoProtoVer(ctx context.Context) (float32, error)
+	SysInfoVersion(ctx context.Context) (string, error)   // https://docs.skytable.io/actions/sys#info
+	SysInfoProtocol(ctx context.Context) (string, error)  // https://docs.skytable.io/actions/sys#info
+	SysInfoProtoVer(ctx context.Context) (float32, error) // https://docs.skytable.io/actions/sys#info
 	// SysMetricHealth (ctx context.Context) (string, error)
 	// SysMetricStorage (ctx context.Context) (uint64, error)
 }

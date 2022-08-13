@@ -160,6 +160,10 @@ func (c *ConnPool) DoEachConn(action func (conn *Conn) error) error {
 	return nil
 }
 
+// https://docs.skytable.io/actions/heya
+//
+// The method does not return anything but the error,
+// because the value returned by Skytable will be automatically validated.
 func (c *ConnPool) Heya(ctx context.Context, echo string) (err error) {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -170,7 +174,7 @@ func (c *ConnPool) Heya(ctx context.Context, echo string) (err error) {
 	return conn.Heya(ctx, echo)
 }
 
-// *ConnPool.AuthLogin() will take all conns and do *Conn.AuthLogin() on each, and overwrite the AuthProvider of the pool.
+// *ConnPool.AuthLogin() will take all conns and do [Conn.AuthLogin]() on each, and overwrite the AuthProvider of the pool.
 //
 // Noted that if there's an error, it's possible that the iteration is not completed and the connections may be using different users.
 func (c *ConnPool) AuthLogin(ctx context.Context, authProvider AuthProvider) error {
@@ -181,6 +185,7 @@ func (c *ConnPool) AuthLogin(ctx context.Context, authProvider AuthProvider) err
 	return err
 }
 
+// https://docs.skytable.io/actions/exists
 func (c *ConnPool) Exists(ctx context.Context, keys []string) (existing uint64, err error) {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -191,6 +196,7 @@ func (c *ConnPool) Exists(ctx context.Context, keys []string) (existing uint64, 
 	return conn.Exists(ctx, keys)
 }
 
+// https://docs.skytable.io/actions/del
 func (c *ConnPool) Del(ctx context.Context, keys []string) (deleted uint64, err error) {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -201,6 +207,7 @@ func (c *ConnPool) Del(ctx context.Context, keys []string) (deleted uint64, err 
 	return conn.Del(ctx, keys)
 }
 
+// https://docs.skytable.io/actions/get
 func (c *ConnPool) Get(ctx context.Context, key string) (response.ResponseEntry, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -211,7 +218,7 @@ func (c *ConnPool) Get(ctx context.Context, key string) (response.ResponseEntry,
 	return c.Get(ctx, key)
 }
 
-// GetString() is a strict version of Get() that only success if the value is stored as String in Skytable.
+// GetString() is a strict version of [Get] that only success if the value is stored as String in Skytable.
 func (c *ConnPool) GetString(ctx context.Context, key string) (string, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -222,7 +229,7 @@ func (c *ConnPool) GetString(ctx context.Context, key string) (string, error) {
 	return conn.GetString(ctx, key)
 }
 
-// GetBytes() is a strict version of GET that only success if the value is stored as BinaryString in Skytable.
+// GetBytes() is a strict version of [Get] that only success if the value is stored as BinaryString in Skytable.
 func (c *ConnPool) GetBytes(ctx context.Context, key string) ([]byte, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -233,6 +240,7 @@ func (c *ConnPool) GetBytes(ctx context.Context, key string) ([]byte, error) {
 	return conn.GetBytes(ctx, key)
 }
 
+// https://docs.skytable.io/actions/mget
 func (c *ConnPool) MGet(ctx context.Context, keys []string) (*protocol.TypedArray, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -243,6 +251,7 @@ func (c *ConnPool) MGet(ctx context.Context, keys []string) (*protocol.TypedArra
 	return conn.MGet(ctx, keys)
 }
 
+// https://docs.skytable.io/actions/mset
 func (c *ConnPool) MSet(ctx context.Context, keys []string, values []any) (set uint64, err error) {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -253,6 +262,7 @@ func (c *ConnPool) MSet(ctx context.Context, keys []string, values []any) (set u
 	return conn.MSet(ctx, keys, values)
 }
 
+// https://docs.skytable.io/actions/mset
 func (c *ConnPool) MSetA(ctx context.Context, entries []action.MSetAEntry) (set uint64, err error) {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -263,6 +273,7 @@ func (c *ConnPool) MSetA(ctx context.Context, entries []action.MSetAEntry) (set 
 	return conn.MSetA(ctx, entries)
 }
 
+// https://docs.skytable.io/actions/set
 func (c *ConnPool) Set(ctx context.Context, key string, value any) error {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -273,6 +284,7 @@ func (c *ConnPool) Set(ctx context.Context, key string, value any) error {
 	return conn.Set(ctx, key, value)
 }
 
+// https://docs.skytable.io/actions/update
 func (c *ConnPool) Update(ctx context.Context, key string, value any) error {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -325,6 +337,7 @@ func (c *ConnPool) ExecRawQuery(actions ...string) ([]response.ResponseEntry, er
 // 	panic("not implemented") // TODO: Implement
 // }
 
+// https://docs.skytable.io/ddl/#inspect
 func (c *ConnPool) InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -335,6 +348,7 @@ func (c *ConnPool) InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, 
 	return conn.InspectKeyspaces(ctx)
 }
 
+// https://docs.skytable.io/ddl/#keyspaces
 func (c *ConnPool) CreateKeyspace(ctx context.Context, name string) error {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -345,6 +359,7 @@ func (c *ConnPool) CreateKeyspace(ctx context.Context, name string) error {
 	return conn.CreateKeyspace(ctx, name)
 }
 
+// https://docs.skytable.io/ddl/#keyspaces-1
 func (c *ConnPool) DropKeyspace(ctx context.Context, name string) error {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -355,7 +370,7 @@ func (c *ConnPool) DropKeyspace(ctx context.Context, name string) error {
 	return conn.DropKeyspace(ctx, name)
 }
 
-// *Conn.Use() is for sending "USE KEYSPACE" or "USE KEYSPACE:TABLE", which change the container which the connection is using.
+// https://docs.skytable.io/ddl/#use
 //
 // This method will take all conns and do *Conn.Use() on each, and overwrite the DefaultEntity of the pool.
 //
@@ -372,10 +387,9 @@ func (c *ConnPool) Use(ctx context.Context, path string) error {
 	return nil
 }
 
-func (c *ConnPool) InspectCurrentKeyspace(ctx context.Context) (*protocol.TypedArray, error) {
-	return c.InspectKeyspace(ctx, "")
-}
-
+// https://docs.skytable.io/ddl/#keyspaces-2
+//
+// If the supplied name is "", inspect the current keyspace
 func (c *ConnPool) InspectKeyspace(ctx context.Context, name string) (*protocol.TypedArray, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -386,6 +400,7 @@ func (c *ConnPool) InspectKeyspace(ctx context.Context, name string) (*protocol.
 	return conn.InspectKeyspace(ctx, name)
 }
 
+// https://docs.skytable.io/ddl/#tables
 func (c *ConnPool) CreateTable(ctx context.Context, path string, modelDesc any) error {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -396,6 +411,7 @@ func (c *ConnPool) CreateTable(ctx context.Context, path string, modelDesc any) 
 	return conn.CreateTable(ctx, path, modelDesc)
 }
 
+// https://docs.skytable.io/ddl/#tables-1
 func (c *ConnPool) DropTable(ctx context.Context, path string) error {
 	conn, err := c.popConn(false)
 	if err != nil {
@@ -418,33 +434,36 @@ func (c *ConnPool) DropTable(ctx context.Context, path string) error {
 // 	panic("not implemented") // TODO: Implement
 // }
 
+// https://docs.skytable.io/actions/sys#info
 func (c *ConnPool) SysInfoVersion(ctx context.Context) (string, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return "", fmt.Errorf("*ConnPool.SysInfoVersion(): %w", err)
 	}
 	defer c.pushConn(conn)
-	
+
 	return conn.SysInfoVersion(ctx)
 }
 
+// https://docs.skytable.io/actions/sys#info
 func (c *ConnPool) SysInfoProtocol(ctx context.Context) (string, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return "", fmt.Errorf("*ConnPool.SysInfoProtocol(): %w", err)
 	}
 	defer c.pushConn(conn)
-	
+
 	return conn.SysInfoProtocol(ctx)
 }
 
+// https://docs.skytable.io/actions/sys#info
 func (c *ConnPool) SysInfoProtoVer(ctx context.Context) (float32, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return 0, fmt.Errorf("*ConnPool.SysInfoProtoVer(): %w", err)
 	}
 	defer c.pushConn(conn)
-	
+
 	return conn.SysInfoProtoVer(ctx)
 }
 

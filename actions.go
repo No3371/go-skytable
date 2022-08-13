@@ -9,6 +9,10 @@ import (
 	"github.com/No3371/go-skytable/response"
 )
 
+// https://docs.skytable.io/actions/heya
+//
+// The method does not return anything but the error,
+// because the value returned by Skytable will be automatically validated.
 func (c *Conn) Heya(ctx context.Context, echo string) error {
 
 	p := &QueryPacket{
@@ -30,6 +34,7 @@ func (c *Conn) Heya(ctx context.Context, echo string) error {
 	return nil
 }
 
+// https://docs.skytable.io/actions/auth#login
 func (c *Conn) AuthLogin(ctx context.Context, authProvider AuthProvider) error {
 	username, token, err := authProvider()
 	if err != nil {
@@ -67,6 +72,7 @@ func (c *Conn) AuthLogin(ctx context.Context, authProvider AuthProvider) error {
 	}
 }
 
+// https://docs.skytable.io/actions/exists
 func (c *Conn) Exists(ctx context.Context, keys []string) (existing uint64, err error) {
 	p := &QueryPacket{
 		ctx: ctx,
@@ -99,8 +105,7 @@ func (c *Conn) Del(ctx context.Context, keys []string) (deleted uint64, err erro
 	return rp.resps[0].Value.(uint64), nil
 }
 
-// Get the value of a key from the current table, if it exists
-// The returned value is either string or binary string
+// https://docs.skytable.io/actions/get
 func (c *Conn) Get(ctx context.Context, key string) (response.ResponseEntry, error) {
 	p := &QueryPacket{
 		ctx: ctx,
@@ -318,6 +323,7 @@ func (c *Conn) ExecRawQuery(actions ...string) ([]response.ResponseEntry, error)
 	return rr.resps, nil
 }
 
+// https://docs.skytable.io/ddl/#inspect
 func (c *Conn) InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, error) {
 	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action{action.InspectKeyspaces{}}))
 	if err != nil {
@@ -331,6 +337,7 @@ func (c *Conn) InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, erro
 	return rp.resps[0].Value.(*protocol.TypedArray), nil
 }
 
+// https://docs.skytable.io/ddl/#keyspaces
 func (c *Conn) CreateKeyspace(ctx context.Context, name string) error {
 	cmd := action.FormatSingleCreateKeyspacePacket(name)
 	rp, err := c.ExecRaw([]byte(cmd))
@@ -355,6 +362,7 @@ func (c *Conn) CreateKeyspace(ctx context.Context, name string) error {
 	return nil
 }
 
+// https://docs.skytable.io/ddl/#keyspaces-1
 func (c *Conn) DropKeyspace(ctx context.Context, name string) error {
 	cmd := action.FormatSingleDropKeyspacePacket(name)
 
@@ -380,7 +388,7 @@ func (c *Conn) DropKeyspace(ctx context.Context, name string) error {
 	return nil
 }
 
-// USE is for sending "USE KEYSPACE" or "USE KEYSPACE:TABLE", which change the container the connection is using.
+// https://docs.skytable.io/ddl/#use
 func (c *Conn) Use(ctx context.Context, path string) error {
 	cmd := action.FormatSingleUsePacket(path)
 	rp, err := c.ExecRaw([]byte(cmd))
@@ -405,10 +413,9 @@ func (c *Conn) Use(ctx context.Context, path string) error {
 	return nil
 }
 
-func (c *Conn) InspectCurrentKeyspace(ctx context.Context) (*protocol.TypedArray, error) {
-	return c.InspectKeyspace(ctx, "")
-}
-
+// https://docs.skytable.io/ddl/#keyspaces-2
+//
+// If the supplied name is "", inspect the current keyspace
 func (c *Conn) InspectKeyspace(ctx context.Context, name string) (*protocol.TypedArray, error) {
 	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action{action.InspectKeyspace{Name: name}}))
 	if err != nil {
@@ -422,6 +429,7 @@ func (c *Conn) InspectKeyspace(ctx context.Context, name string) (*protocol.Type
 	return rp.resps[0].Value.(*protocol.TypedArray), nil
 }
 
+// https://docs.skytable.io/ddl/#tables
 func (c *Conn) CreateTable(ctx context.Context, path string, modelDesc any) error {
 	cmd, err := action.FormatSingleCreateTablePacket(path, modelDesc)
 	if err != nil {
@@ -450,6 +458,7 @@ func (c *Conn) CreateTable(ctx context.Context, path string, modelDesc any) erro
 	return nil
 }
 
+// https://docs.skytable.io/ddl/#tables-1
 func (c *Conn) DropTable(ctx context.Context, path string) error {
 	cmd := action.FormatSingleDropTablePacket(path)
 
@@ -492,6 +501,8 @@ func (c *Conn) DropTable(ctx context.Context, path string) error {
 // 	return rp.resps[0].Value.(*protocol.TypedArray), nil
 // }
 
+
+// https://docs.skytable.io/actions/sys#info
 func (c *Conn) SysInfoVersion(ctx context.Context) (string, error) {
 	rp, err := c.ExecRaw([]byte("*1\n~3\n3\nSYS\n4\nINFO\n7\nVERSION\n"))
 	if err != nil {
@@ -505,6 +516,7 @@ func (c *Conn) SysInfoVersion(ctx context.Context) (string, error) {
 	return rp.resps[0].Value.(string), nil
 }
 
+// https://docs.skytable.io/actions/sys#info
 func (c *Conn) SysInfoProtocol(ctx context.Context) (string, error) {
 	rp, err := c.ExecRaw([]byte("*1\n~3\n3\nSYS\n4\nINFO\n8\nPROTOCOL\n"))
 	if err != nil {
@@ -522,6 +534,7 @@ func (c *Conn) SysInfoProtocol(ctx context.Context) (string, error) {
 	return rp.resps[0].Value.(string), nil
 }
 
+// https://docs.skytable.io/actions/sys#info
 func (c *Conn) SysInfoProtoVer(ctx context.Context) (float32, error) {
 	rp, err := c.ExecRaw([]byte("*1\n~3\n3\nSYS\n4\nINFO\n8\nPROTOVER\n"))
 	if err != nil {

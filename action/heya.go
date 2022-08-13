@@ -17,8 +17,12 @@ func NewHeya(echo string) *Heya {
 	}
 }
 
-func (q Heya) AppendToPacket(builder *strings.Builder) error {
-	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 2, builder)
+func (q Heya) AppendToPacket(builder *strings.Builder) (err error) {
+	if q.echo == "" {
+		err = AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 1, builder)
+	} else {
+		err = AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 2, builder)
+	}
 	if err != nil {
 		return err
 	}
@@ -40,7 +44,7 @@ func (q Heya) AppendToPacket(builder *strings.Builder) error {
 func (q Heya) ValidateProtocol(response interface{}) error {
 	switch echo := response.(type) {
 	case string:
-		if (q.echo == "" && echo != "HEY!") || echo != q.echo {
+		if (q.echo == "" && echo != "HEY!") || (q.echo != "" && echo != q.echo) {
 			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("HEYA: unexpected echo: %s", response), nil)
 		} else {
 			return nil

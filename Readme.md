@@ -149,19 +149,20 @@ resp, err := c.BuildAndExecQuery(p)
 
 ## DDL with Connection Pool
 
-Connection Pools manage multiple connections on its own and users have no way to decide which `Conn` is used on method calls. Running `USE` with Connection Pools means a random `Conn` will use the specified container.
-
-This means it's possible for connections in a pool using different container, therefore actions could be unintentionally sent to unexpected containers.
+Connection Pools manage multiple connections on its own and users have no way to decide which `Conn` is used on method calls. Running `USE` is equal to run `USE` on all of the existing connections in it, and change the default container of the pool so future connections will automatically `USE` that.
 
 If you are working with multiple Keyspaces/Tables and you are using Connection Pool, there are 2 suggested usages:
 
-- **Container-dedicated connection pool**: Calling `*ConnPool.UseKeyspace/Table` will iterate through all opened connections in the pool and call their USE, and change the default Keyspace/Table of the future new connection in the pool.
-- **USE first in every packet**: this may introduce performance loss and frequent USEs are not recommended by Skytable official.
+- **Container-dedicated connection pool**: Keep a connection pool for every container. By specifying default container in ConnectionPoolOptions, all the new connections spawned by the pool automatically `USE` it.
+- **USE first in every packet**: This should explain itself, but it may introduce performance loss and frequent USEs are not recommended by Skytable official.
 
 ## Testing
 
-Testcases are written for both Auth-Enabled and Auth-Disabled Skytable instances.
+Testcases are written for local Skytable instances (127.0.0.1), some of them use auth coonnections, some don't.
+
 The Auth-Enabled one should be bound to 2003 (Skytable default port), while the Auth-Disabled one should be bound to 2004 (as specified in `skytable_test.go`).
+
+### Auth
 
 All auth testcases use username `go-skytable-test` (as specified in `skytable_test.go`), and looks up the token by:
 

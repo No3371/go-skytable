@@ -2,7 +2,7 @@
 
 ![](https://goreportcard.com/badge/github.com/No3371/go-skytable)
 
-A Go driver of [Skytable](https://github.com/skytable/skytable).
+A Go driver of [Skytable](https://github.com/skytable/skytable), a fast,     secure and reliable realtime NoSQL database.
 
 ## Status
 
@@ -42,7 +42,7 @@ localAddr := &net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPo
 
 // Auth is disabled in the instance
 c := skytable.NewConnPool(localAddr, skytable.DefaultConnPoolOptions)
-// or 
+// or
 auth := func() (u, t string) {
         u = "USERNAME"
         t = "TOKEN"
@@ -169,3 +169,6 @@ All auth testcases use username `go-skytable-test` (as specified in `skytable_te
 2. If step 1 failed, read a file in the repo named `go-skytable-test` and read the content as the token.
 
 If the `go-skytable-test` user and the token are setup correctly, the auth testcases should run without issues.
+
+## Known Issues:
+- (Skytable) On Windows, executing DDL to an Auth-Enabled instance will results in auth data file loss. This has been reported and will be fixed in Skytable 0.7.6.

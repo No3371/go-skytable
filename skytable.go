@@ -40,8 +40,7 @@ type Skytable interface {
 	// Pop(ctx context.Context, key string) (response.ResponseEntry, error)
 
 	Exec(ctx context.Context, packet *QueryPacket) ([]response.ResponseEntry, error)
-	ExecSingleRawQuery(segments ...string) (response.ResponseEntry, error)
-	ExecRawQuery(actions ...string) ([]response.ResponseEntry, error)
+	ExecSingleActionPacketRaw(segments ...string) (response.ResponseEntry, error)
 
 	Use(ctx context.Context, path string) error // https://docs.skytable.io/ddl/#use
 

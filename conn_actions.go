@@ -295,32 +295,18 @@ func (c *Conn) Exec(ctx context.Context, packet *QueryPacket) ([]response.Respon
 	return rp.resps, nil
 }
 
-func (c *Conn) ExecSingleRawQuery(segments ...string) (response.ResponseEntry, error) {
-	raw, err := c.BuildSingleRaw(segments...)
+func (c *Conn) ExecSingleActionPacketRaw(segments ...string) (response.ResponseEntry, error) {
+	raw, err := c.BuildSingleActionPacketRaw(segments)
 	if err != nil {
 		return response.EmptyResponseEntry, err
 	}
 
-	rr, err := c.ExecRaw([]byte(raw))
+	rr, err := c.ExecRaw(raw)
 	if err != nil {
 		return response.EmptyResponseEntry, err
 	}
 
 	return rr.resps[0], nil
-}
-
-func (c *Conn) ExecRawQuery(actions ...string) ([]response.ResponseEntry, error) {
-	raw, err := c.BuildMultipleRaw(actions)
-	if err != nil {
-		return nil, err
-	}
-
-	rr, err := c.ExecRaw([]byte(raw))
-	if err != nil {
-		return nil, err
-	}
-
-	return rr.resps, nil
 }
 
 // https://docs.skytable.io/ddl/#inspect
@@ -340,7 +326,7 @@ func (c *Conn) InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, erro
 // https://docs.skytable.io/ddl/#keyspaces
 func (c *Conn) CreateKeyspace(ctx context.Context, name string) error {
 	cmd := action.FormatSingleCreateKeyspacePacket(name)
-	rp, err := c.ExecRaw([]byte(cmd))
+	rp, err := c.ExecRaw(cmd)
 	if err != nil {
 		return err
 	}
@@ -366,7 +352,7 @@ func (c *Conn) CreateKeyspace(ctx context.Context, name string) error {
 func (c *Conn) DropKeyspace(ctx context.Context, name string) error {
 	cmd := action.FormatSingleDropKeyspacePacket(name)
 
-	rp, err := c.ExecRaw([]byte(cmd))
+	rp, err := c.ExecRaw(cmd)
 	if err != nil {
 		return err
 	}
@@ -389,9 +375,11 @@ func (c *Conn) DropKeyspace(ctx context.Context, name string) error {
 }
 
 // https://docs.skytable.io/ddl/#use
+//
+// “USE KEYSPACE” and “USE TABLE” are unified into “USE”.
 func (c *Conn) Use(ctx context.Context, path string) error {
 	cmd := action.FormatSingleUsePacket(path)
-	rp, err := c.ExecRaw([]byte(cmd))
+	rp, err := c.ExecRaw(cmd)
 	if err != nil {
 		return err
 	}
@@ -436,7 +424,7 @@ func (c *Conn) CreateTable(ctx context.Context, path string, modelDesc any) erro
 		return err
 	}
 
-	rp, err := c.ExecRaw([]byte(cmd))
+	rp, err := c.ExecRaw(cmd)
 	if err != nil {
 		return err
 	}
@@ -462,7 +450,7 @@ func (c *Conn) CreateTable(ctx context.Context, path string, modelDesc any) erro
 func (c *Conn) DropTable(ctx context.Context, path string) error {
 	cmd := action.FormatSingleDropTablePacket(path)
 
-	rp, err := c.ExecRaw([]byte(cmd))
+	rp, err := c.ExecRaw(cmd)
 	if err != nil {
 		return err
 	}
@@ -501,10 +489,9 @@ func (c *Conn) DropTable(ctx context.Context, path string) error {
 // 	return rp.resps[0].Value.(*protocol.TypedArray), nil
 // }
 
-
 // https://docs.skytable.io/actions/sys#info
 func (c *Conn) SysInfoVersion(ctx context.Context) (string, error) {
-	rp, err := c.ExecRaw([]byte("*1\n~3\n3\nSYS\n4\nINFO\n7\nVERSION\n"))
+	rp, err := c.ExecRaw("*1\n~3\n3\nSYS\n4\nINFO\n7\nVERSION\n")
 	if err != nil {
 		return "", err
 	}
@@ -518,7 +505,7 @@ func (c *Conn) SysInfoVersion(ctx context.Context) (string, error) {
 
 // https://docs.skytable.io/actions/sys#info
 func (c *Conn) SysInfoProtocol(ctx context.Context) (string, error) {
-	rp, err := c.ExecRaw([]byte("*1\n~3\n3\nSYS\n4\nINFO\n8\nPROTOCOL\n"))
+	rp, err := c.ExecRaw("*1\n~3\n3\nSYS\n4\nINFO\n8\nPROTOCOL\n")
 	if err != nil {
 		return "", err
 	}
@@ -536,7 +523,7 @@ func (c *Conn) SysInfoProtocol(ctx context.Context) (string, error) {
 
 // https://docs.skytable.io/actions/sys#info
 func (c *Conn) SysInfoProtoVer(ctx context.Context) (float32, error) {
-	rp, err := c.ExecRaw([]byte("*1\n~3\n3\nSYS\n4\nINFO\n8\nPROTOVER\n"))
+	rp, err := c.ExecRaw("*1\n~3\n3\nSYS\n4\nINFO\n8\nPROTOVER\n")
 	if err != nil {
 		return 0, err
 	}

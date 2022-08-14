@@ -164,60 +164,43 @@ func NewConnAuth(remote *net.TCPAddr, authProvider AuthProvider) (*Conn, error) 
 	return conn, nil
 }
 
-func (c *Conn) BuildSingleRaw(segs ...string) (raw string, err error) {
+func (c *Conn) BuildSingleActionPacketRaw(segs []string) (raw string, err error) {
 	c.strBuilder.Reset()
-	for i, s := range segs {
-		if i != 0 {
-			_, err = c.strBuilder.WriteRune(' ')
-			if err != nil {
-				return "", err
-			}
-		}
-		_, err = c.strBuilder.WriteString(s)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	return c.strBuilder.String(), nil
-}
-
-func (c *Conn) BuildMultipleRaw(actions []string) (raw string, err error) {
-	if len(actions) == 0 {
-		return "", NewUsageError("BuildMultipleRaw: building 0 actions", nil)
-	}
-	if len(actions) == 1 {
-		return c.BuildSingleRaw(actions[0])
-	}
-
-	c.strBuilder.Reset()
-	_, err = fmt.Fprintf(c.strBuilder, "*%d\n", len(actions))
+	_, err = fmt.Fprint(c.strBuilder, "*1\n")
 	if err != nil {
 		return "", err
 	}
 
-	for i, s := range actions {
-		if i != 0 {
-			_, err = c.strBuilder.WriteRune('\n')
-			if err != nil {
-				return "", err
-			}
-		}
-		_, err = c.strBuilder.WriteString(s)
-		if err != nil {
-			return "", err
-		}
+	err = c.appendSingleActionRaw(segs)
+	if err != nil {
+		return "", err
 	}
 
 	return c.strBuilder.String(), nil
 }
 
-func (c *Conn) ExecRaw(query []byte) (*RawResponsePacket, error) {
+func (c *Conn) appendSingleActionRaw(segs []string) (err error) {
+	_, err = fmt.Fprintf(c.strBuilder, "~%d\n", len(segs))
+	if err != nil {
+		return err
+	}
+
+	for _, s := range segs {
+		_, err = fmt.Fprintf(c.strBuilder, "%d\n%s\n", len(s), s)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *Conn) ExecRaw(query string) (*RawResponsePacket, error) {
 	if err := c.checkClosed(); err != nil {
 		return nil, err
 	}
 
-	_, err := c.netConn.Write(query)
+	_, err := c.netConn.Write([]byte(query))
 	if err != nil {
 		c.errClose(err)
 		return nil, NewComuError("failed to write to conn", err)

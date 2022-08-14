@@ -639,7 +639,7 @@ func TestPacketError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resp, err := c.ExecRaw([]byte("*1\n~1\n2\nABC\n3\nABC\n"))
+	resp, err := c.ExecRaw("*1\n~1\n2\nABC\n3\nABC\n")
 	if err == nil {
 		t.Logf("Resp: %v", resp)
 		t.Fatal("ExecRaw: expecting error but got nil")
@@ -650,7 +650,7 @@ func TestPacketError(t *testing.T) {
 		t.Fatalf("expecting PacketError but got %s", err)
 	}
 
-	resp, err = c.ExecRaw([]byte("*1\n~1\n2\nABC\n3\nABC\n"))
+	resp, err = c.ExecRaw("*1\n~1\n2\nABC\n3\nABC\n")
 	if err == nil {
 		t.Logf("Resp: %v", resp)
 		t.Fatal("ExecRaw: expecting error but got nil")
@@ -669,7 +669,7 @@ func TestAutoReconnect(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resp, err := c.ExecRaw([]byte("*1\n~1\n2\nABC\n3\nABC\n"))
+	resp, err := c.ExecRaw("*1\n~1\n2\nABC\n3\nABC\n")
 	if err == nil {
 		t.Logf("Resp: %v", resp)
 		t.Fatal("ExecRaw: expecting error but got nil")
@@ -680,7 +680,7 @@ func TestAutoReconnect(t *testing.T) {
 		t.Fatalf("expecting PacketError but got %s", err)
 	}
 
-	resp, err = c.ExecRaw([]byte("*1\n~1\n2\nABC\n3\nABC\n"))
+	resp, err = c.ExecRaw("*1\n~1\n2\nABC\n3\nABC\n")
 	if err == nil {
 		t.Logf("Resp: %v", resp)
 		t.Fatal("ExecRaw: expecting error but got nil")
@@ -693,7 +693,7 @@ func TestAutoReconnect(t *testing.T) {
 	}
 
 	c.EnableAutoReconnect()
-	resp, err = c.ExecRaw([]byte("*1\n~1\n2\nABC\n3\nABC\n"))
+	resp, err = c.ExecRaw("*1\n~1\n2\nABC\n3\nABC\n")
 	if err == nil {
 		t.Logf("Resp: %v", resp)
 		t.Fatal("ExecRaw: expecting error but got nil")

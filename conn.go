@@ -99,6 +99,11 @@ func (c *Conn) checkClosed () error {
 	}
 }
 
+// Create a new Conn.
+// If auth is enabled on the destination server, use [NewConnAuth] instead.
+//
+// After connection established, the driver automatically validate Skyhash protocol version with the server,
+// and return an error in case of mismatch.
 func NewConn(remote *net.TCPAddr) (*Conn, error) {
 
 	nc, err := net.DialTCP("tcp", nil, remote)
@@ -128,6 +133,11 @@ func NewConn(remote *net.TCPAddr) (*Conn, error) {
 	return conn, nil
 }
 
+// Create a new Conn and ``AUTH LOGIN'' with the provided auth info.
+//
+// After connection established, the driver automatically
+// validate Skyhash protocol version with the server,
+// and return an error in case of mismatch.
 func NewConnAuth(remote *net.TCPAddr, authProvider AuthProvider) (*Conn, error) {
 
 	nc, err := net.DialTCP("tcp", nil, remote)

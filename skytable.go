@@ -42,15 +42,18 @@ type Skytable interface {
 	Exec(ctx context.Context, packet *QueryPacket) ([]response.ResponseEntry, error)
 	ExecSingleActionPacketRaw(segments ...string) (response.ResponseEntry, error)
 
-	Use(ctx context.Context, path string) error // https://docs.skytable.io/ddl/#use
+	// https://docs.skytable.io/ddl/#use
+	//
+	// ``USE KEYSPACE'' and ``USE TABLE'' are unified into ``USE''.
+	Use(ctx context.Context, path string) error
 
-	InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, error) // https://docs.skytable.io/ddl/#inspect
-	CreateKeyspace(ctx context.Context, name string) error // https://docs.skytable.io/ddl/#keyspaces
-	DropKeyspace(ctx context.Context, name string) error // https://docs.skytable.io/ddl/#keyspaces-1
+	InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, error)             // https://docs.skytable.io/ddl/#inspect
+	CreateKeyspace(ctx context.Context, name string) error                          // https://docs.skytable.io/ddl/#keyspaces
+	DropKeyspace(ctx context.Context, name string) error                            // https://docs.skytable.io/ddl/#keyspaces-1
 	InspectKeyspace(ctx context.Context, name string) (*protocol.TypedArray, error) // https://docs.skytable.io/ddl/#keyspaces-2
 
 	CreateTable(ctx context.Context, path string, modelDesc any) error // https://docs.skytable.io/ddl/#tables
-	DropTable(ctx context.Context, path string) error // https://docs.skytable.io/ddl/#tables-1
+	DropTable(ctx context.Context, path string) error                  // https://docs.skytable.io/ddl/#tables-1
 	// InspectTable (ctx context.Context, name string) (interface{}, error)
 
 	SysInfoVersion(ctx context.Context) (string, error)   // https://docs.skytable.io/actions/sys#info
@@ -63,5 +66,5 @@ type Skytable interface {
 type SkytablePool interface {
 	Skytable
 
-	RentConn (dontOpenNew bool) (conn *Conn, pusher func (), err error)
+	RentConn(dontOpenNew bool) (conn *Conn, pusher func(), err error)
 }

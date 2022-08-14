@@ -13,29 +13,6 @@ import (
 const ProtoVer = "Skyhash-1.1"
 
 type AuthProvider func() (username, token string, err error)
-type QueryPacket struct {
-	ctx     context.Context
-	actions []Action
-}
-
-func NewQueryPacket(actions []Action) *QueryPacket {
-	return &QueryPacket{
-		actions: actions,
-	}
-}
-
-type RawResponsePacket struct {
-	resps []response.ResponseEntry
-}
-
-type ResponsePacket struct {
-	query *QueryPacket
-	resps []response.ResponseEntry
-}
-
-func (rr ResponsePacket) Resps() []response.ResponseEntry {
-	return rr.resps
-}
 
 type Action interface {
 	AppendToPacket(builder *strings.Builder) error
@@ -66,7 +43,7 @@ type Skytable interface {
 	ExecSingleRawQuery(segments ...string) (response.ResponseEntry, error)
 	ExecRawQuery(actions ...string) ([]response.ResponseEntry, error)
 
-	Use(ctx context.Context, path string) error
+	Use(ctx context.Context, path string) error // https://docs.skytable.io/ddl/#use
 
 	InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, error) // https://docs.skytable.io/ddl/#inspect
 	CreateKeyspace(ctx context.Context, name string) error // https://docs.skytable.io/ddl/#keyspaces

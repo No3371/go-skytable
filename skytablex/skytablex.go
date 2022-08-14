@@ -9,7 +9,6 @@ import (
 	"github.com/No3371/go-skytable"
 	"github.com/No3371/go-skytable/action"
 	"github.com/No3371/go-skytable/protocol"
-	"github.com/No3371/go-skytable/response"
 )
 
 type ConnX struct {
@@ -175,4 +174,46 @@ type ConnPoolX struct {
 
 func (c *ConnPoolX) InspectCurrentKeyspace(ctx context.Context) (*protocol.TypedArray, error) {
 	return c.InspectKeyspace(ctx, "")
+}
+
+// Get the value of a key from the current table, if it exists
+//
+// SimTTL only works with BinaryString values
+func (c *ConnPoolX) GetWithSimTTL(ctx context.Context, key string) (resp []byte, tsUnix time.Time, err error) {
+	conn, pusher, err := c.RentConn(false)
+	if err != nil {
+		return nil, time.Time{}, fmt.Errorf("*ConnPoolX.GetWithSimTTL(): %w", err)
+	}
+	defer pusher ()
+
+	x := ConnX{ *conn }
+	return x.GetWithSimTTL(ctx, key)
+}
+
+// Set the value of a key in the current table, if it doesn't already exist
+//
+// SimTTL only works with BinaryString values
+func (c *ConnPoolX) SetWithSimTTL(ctx context.Context, key string, value []byte) error {
+	conn, pusher, err := c.RentConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPoolX.SetWithSimTTL(): %w", err)
+	}
+	defer pusher ()
+
+	x := ConnX{ *conn }
+	return x.SetWithSimTTL(ctx, key, value)
+}
+
+// Update the value of an existing key in the current table
+//
+// SimTTL only works with BinaryString values
+func (c *ConnPoolX) UpdateWithSimTTL(ctx context.Context, key string, value []byte) error {
+	conn, pusher, err := c.RentConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPoolX.UpdateWithSimTTL(): %w", err)
+	}
+	defer pusher ()
+
+	x := ConnX{ *conn }
+	return x.UpdateWithSimTTL(ctx, key, value)
 }

@@ -83,3 +83,9 @@ type Skytable interface {
 	// SysMetricHealth (ctx context.Context) (string, error)
 	// SysMetricStorage (ctx context.Context) (uint64, error)
 }
+
+type SkytablePool interface {
+	Skytable
+
+	RentConn (dontOpenNew bool) (conn *Conn, pusher func (), err error)
+}

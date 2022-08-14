@@ -90,6 +90,27 @@ func (c *ConnPool) pushConn(conn *Conn) {
 	}
 }
 
+// Get a conn and return it back.
+// A ``pusher'' func is returned to push back the conn.
+//
+// 		conn, pusher, err := c.RentConn(false)
+//		if err != nil {
+// 		return err
+// 		}
+// 		defer pusher ()
+func (c *ConnPool) RentConn (dontOpenNew bool) (conn *Conn, pusher func (), err error) {
+	conn, err = c.popConn(dontOpenNew)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	pusher = func () {
+		c.pushConn(conn)
+	}
+
+	return conn, pusher, err
+}
+
 func (c *ConnPool) openConn() (conn *Conn, err error) {
 	if c.opts.AuthProvider != nil {
 		conn, err = NewConnAuth(c.remote, c.opts.AuthProvider)

@@ -1,8 +1,6 @@
 # go-skytable
 
-![](https://goreportcard.com/badge/github.com/No3371/go-skytable)
-
-A Go driver of [Skytable](https://github.com/skytable/skytable), a fast,     secure and reliable realtime NoSQL database.
+A Go driver of [Skytable](https://github.com/skytable/skytable), a fast, secure and reliable realtime NoSQL database.
 
 ## Status
 
@@ -92,9 +90,9 @@ resp, err := c.BuildAndExecQuery(p)
 - [X] SignedInteger
 - [X] String
 - [X] BinaryString
+- [X] Float
 - [ ] SmallInteger
 - [ ] SignedSmallInteger
-- [X] Float
 - [ ] Json
 
 - [X] TypedArray
@@ -153,20 +151,20 @@ resp, err := c.BuildAndExecQuery(p)
 
 The subpackage provides opinionated extensions that could be useful or convenient.
 
-For example, `*ConnX.GetWithSimTTL()`, `*ConnX.SetWithSimTTL()`, `*ConnX.UpdateWithSimTTL`() are alternative versions of their respective methods of Conn, these methods only works with []byte values and automatically add an action to maintain timestamp with key "key_timestamp".
+For example, `*ConnX.GetWithSimTTL()`, `*ConnX.SetWithSimTTL()`, `*ConnX.UpdateWithSimTTL()` are alternative versions of their respective methods of Conn, these methods only works with []byte values and automatically add an action to maintain timestamp with key "key_timestamp".
 
 ## DDL with Connection Pool
 
-Connection Pools manage multiple connections on its own and users have no way to decide which `Conn` is used on method calls. Running `USE` is equal to run `USE` on all of the existing connections in it, and change the default container of the pool so future connections will automatically `USE` that.
+Connection Pools manage multiple connections on its own and users have no way to decide which `Conn` is used on method calls. 
 
 If you are working with multiple Keyspaces/Tables and you are using Connection Pool, there are 2 suggested usages:
 
-- **Container-dedicated connection pool**: Keep a connection pool for every container. By specifying default container in ConnectionPoolOptions, all the new connections spawned by the pool automatically `USE` it.
+- **Container-dedicated connection pool**: Keep a connection pool for every container. By specifying default container in ConnectionPoolOptions, all the new connections spawned by the pool automatically `USE` it. Running `USE` is equal to run `USE` on all of the existing connections in it, and change the default container of the pool so future connections will automatically `USE` that.
 - **USE first in every packet**: This should explain itself, but it may introduce performance loss and frequent USEs are not recommended by Skytable official.
 
 ## Testing
 
-Testcases are written for local Skytable instances (127.0.0.1), some of them use auth coonnections, some don't.
+Testcases are written for local Skytable instances (@127.0.0.1), some of them use auth coonnections, some don't.
 
 The Auth-Enabled one should be bound to 2003 (Skytable default port), while the Auth-Disabled one should be bound to 2004 (as specified in `skytable_test.go`).
 

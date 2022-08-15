@@ -1,5 +1,7 @@
 # go-skytable
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/No3371/go-skytable.svg)](https://pkg.go.dev/github.com/No3371/go-skytable)
+
 A Go driver of [Skytable](https://github.com/skytable/skytable), a fast, secure and reliable realtime NoSQL database.
 
 ## Status

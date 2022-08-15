@@ -194,8 +194,6 @@ func (c *ConnPoolX) InspectCurrentKeyspace(ctx context.Context) (*protocol.Typed
 	return c.InspectKeyspace(ctx, "")
 }
 
-// Get the value of a key from the current table, if it exists
-//
 // SimTTL only works with BinaryString values
 func (c *ConnPoolX) GetWithSimTTL(ctx context.Context, key string) (resp []byte, tsUnix time.Time, err error) {
 	conn, pusher, err := c.RentConn(false)
@@ -208,8 +206,6 @@ func (c *ConnPoolX) GetWithSimTTL(ctx context.Context, key string) (resp []byte,
 	return x.GetWithSimTTL(ctx, key)
 }
 
-// Set the value of a key in the current table, if it doesn't already exist
-//
 // SimTTL only works with BinaryString values
 func (c *ConnPoolX) SetWithSimTTL(ctx context.Context, key string, value []byte) error {
 	conn, pusher, err := c.RentConn(false)
@@ -222,8 +218,6 @@ func (c *ConnPoolX) SetWithSimTTL(ctx context.Context, key string, value []byte)
 	return x.SetWithSimTTL(ctx, key, value)
 }
 
-// Update the value of an existing key in the current table
-//
 // SimTTL only works with BinaryString values
 func (c *ConnPoolX) UpdateWithSimTTL(ctx context.Context, key string, value []byte) error {
 	conn, pusher, err := c.RentConn(false)
@@ -234,4 +228,16 @@ func (c *ConnPoolX) UpdateWithSimTTL(ctx context.Context, key string, value []by
 
 	x := ConnX{ *conn }
 	return x.UpdateWithSimTTL(ctx, key, value)
+}
+
+// SimTTL only works with BinaryString values
+func (c *ConnPoolX) DelWithSimTTL(ctx context.Context, key string) (err error) {
+	conn, pusher, err := c.RentConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPoolX.DelWithSimTTL(): %w", err)
+	}
+	defer pusher ()
+
+	x := ConnX{ *conn }
+	return x.DelWithSimTTL(ctx, key)
 }

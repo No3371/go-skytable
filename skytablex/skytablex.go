@@ -3,6 +3,7 @@ package skytablex
 import (
 	"context"
 	"encoding/binary"
+	
 	"fmt"
 	"time"
 
@@ -15,8 +16,6 @@ type ConnX struct {
 	skytable.Conn
 }
 
-// Get the value of a key from the current table, if it exists
-//
 // SimTTL only works with BinaryString values
 func (c *ConnX) GetWithSimTTL(ctx context.Context, key string) (resp []byte, tsUnix time.Time, err error) {
 	p := skytable.NewQueryPacket( []skytable.Action {
@@ -47,8 +46,6 @@ func (c *ConnX) GetWithSimTTL(ctx context.Context, key string) (resp []byte, tsU
 	return rp.Resps()[0].Value.([]byte), time.UnixMilli(int64(binary.BigEndian.Uint64(resps[1].Value.([]byte)))), nil
 }
 
-// Set the value of a key in the current table, if it doesn't already exist
-//
 // SimTTL only works with BinaryString values
 func (c *ConnX) SetWithSimTTL(ctx context.Context, key string, value []byte) error {
     ts := make([]byte, 8)
@@ -102,8 +99,6 @@ func (c *ConnX) SetWithSimTTL(ctx context.Context, key string, value []byte) err
 	return nil
 }
 
-// Update the value of an existing key in the current table
-//
 // SimTTL only works with BinaryString values
 func (c *ConnX) UpdateWithSimTTL(ctx context.Context, key string, value []byte) error {
     ts := make([]byte, 8)
@@ -130,11 +125,11 @@ func (c *ConnX) UpdateWithSimTTL(ctx context.Context, key string, value []byte) 
 		case protocol.RespServerError:
 			return protocol.ErrCodeServerError
 		default:
-			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("Update(): Unexpected response code: %s", resp), nil)
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("UpdateWithSimTTL(): Unexpected response code: %s", resp), nil)
 
 		}
 	default:
-		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("Update(): Unexpected response element: %v", resp), nil)
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("UpdateWithSimTTL(): Unexpected response element: %v", resp), nil)
 	}
 
 	switch resp := resps[1].Value.(type) {
@@ -147,11 +142,34 @@ func (c *ConnX) UpdateWithSimTTL(ctx context.Context, key string, value []byte) 
 		case protocol.RespServerError:
 			return protocol.ErrCodeServerError
 		default:
-			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("Update(): Unexpected response code: %s", resp), nil)
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("UpdateWithSimTTL(): Unexpected response code: %s", resp), nil)
 
 		}
 	default:
-		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("Update(): Unexpected response element: %v", resp), nil)
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("UpdateWithSimTTL(): Unexpected response element: %v", resp), nil)
+	}
+
+	return nil
+}
+
+// SimTTL only works with BinaryString values
+func (c *ConnX) DelWithSimTTL(ctx context.Context, key string) (err error) {
+	p := skytable.NewQueryPacket( []skytable.Action {
+		action.NewDel( []string { key, key + "_timestamp" }),
+	})
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return err
+	}
+
+	resps := rp.Resps()
+	if resps[0].Err != nil {
+		return fmt.Errorf("DelWithSimTTL(): %w", err)
+	}
+
+	if resps[0].Value != 2 {
+		return fmt.Errorf("DelWithSimTTL(): Expecting result (deelted): 2, but got: %d", resps[0].Value)
 	}
 
 	return nil

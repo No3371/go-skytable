@@ -36,11 +36,28 @@ func (c *ConnX) GetWithSimTTL(ctx context.Context, key string) (resp []byte, tsU
 		return nil, time.Time{}, fmt.Errorf("GetWithSimTTL: failed to get simulated TTL with key '%s.timestamp': %w", key, err)
 	}
 
-	if resps[0].DataType != protocol.DataTypeBinaryString {
-		return nil, time.Time{}, fmt.Errorf("GetWithSimTTL: expecting BinaryString value but got %s", resps[0].DataType)
+	switch resp := resps[0].Value.(type) {
+	case []byte:
+		break
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespNil:
+			return nil, time.Time{}, protocol.ErrCodeNil
+		}
+	default:
+		return nil, time.Time{}, protocol.NewUnexpectedProtocolError(fmt.Sprintf("GetWithSimTTL(): Unexpected response element: %v", resp), nil)
 	}
-	if resps[1].DataType != protocol.DataTypeBinaryString {
-		return nil, time.Time{}, fmt.Errorf("GetWithSimTTL: expecting simulated TTL to be BinaryString but got %s", resps[1].DataType)
+	
+	switch resp := resps[1].Value.(type) {
+	case []byte:
+		break
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespNil:
+			return nil, time.Time{}, protocol.ErrCodeNil
+		}
+	default:
+		return nil, time.Time{}, protocol.NewUnexpectedProtocolError(fmt.Sprintf("GetWithSimTTL(): Unexpected TTL element: %v", resp), nil)
 	}
 
 	return rp.Resps()[0].Value.([]byte), time.UnixMilli(int64(binary.BigEndian.Uint64(resps[1].Value.([]byte)))), nil

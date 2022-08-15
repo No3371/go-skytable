@@ -168,8 +168,8 @@ func (c *ConnX) DelWithSimTTL(ctx context.Context, key string) (err error) {
 		return fmt.Errorf("DelWithSimTTL(): %w", err)
 	}
 
-	if resps[0].Value != 2 {
-		return fmt.Errorf("DelWithSimTTL(): Expecting result (deelted): 2, but got: %d", resps[0].Value)
+	if resps[0].Value != uint64(2) {
+		return fmt.Errorf("DelWithSimTTL(): Expecting result (deleted): 2, but got: %d", resps[0].Value)
 	}
 
 	return nil

@@ -240,10 +240,12 @@ type BuiltQuery struct {
 }
 
 func (c *Conn) ExecQuery(bq BuiltQuery) (*ResponsePacket, error) {
-	select {
-	default:
-	case <-bq.ctx.Done():
-		return nil, bq.ctx.Err()
+	if bq.ctx != nil {
+		select {
+		default:
+		case <-bq.ctx.Done():
+			return nil, bq.ctx.Err()
+		}
 	}
 
 	if err := c.checkClosed(); err != nil {
@@ -277,10 +279,12 @@ func (c *Conn) ExecQuery(bq BuiltQuery) (*ResponsePacket, error) {
 }
 
 func (c *Conn) BuildQuery(p *QueryPacket) (BuiltQuery, error) {
-	select {
-	default:
-	case <-p.ctx.Done():
-		return BuiltQuery{}, p.ctx.Err()
+	if p.ctx != nil {
+		select {
+		default:
+		case <-p.ctx.Done():
+			return BuiltQuery{}, p.ctx.Err()
+		}
 	}
 
 	if err := c.checkClosed(); err != nil {

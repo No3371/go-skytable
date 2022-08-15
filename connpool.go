@@ -41,12 +41,14 @@ func NewConnPool(remote *net.TCPAddr, opts ConnPoolOptions) *ConnPool {
 		opts.Cap = int64(runtime.NumCPU()) * 2
 	}
 
-	return &ConnPool{
+	cp := &ConnPool{
 		opened:       0,
 		available:    make(chan *Conn, opts.Cap),
 		remote:       remote,
 		opts: opts,
 	}
+
+	return cp
 }
 
 func (c *ConnPool) OpenedConns() int64 {

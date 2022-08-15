@@ -10,12 +10,13 @@ func TestConn_BuildSingleActionPacketRaw(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		args    []string
+		args    []any
 		wantRaw string
 		wantErr bool
 	}{
-		{ "GetX", []string { "GET", "X" }, "*1\n~2\n3\nGET\n1\nX\n", false },
-		{ "SysInfoProtocol", []string { "SYS", "INFO", "PROTOCOL" }, "*1\n~3\n3\nSYS\n4\nINFO\n8\nPROTOCOL\n", false },
+		{ "SetX", []any { "SET", "X", 100 }, "*1\n~3\n3\nSET\n1\nX\n3\n100\n", false },
+		{ "GetX", []any { "GET", "X" }, "*1\n~2\n3\nGET\n1\nX\n", false },
+		{ "SysInfoProtocol", []any { "SYS", "INFO", "PROTOCOL" }, "*1\n~3\n3\nSYS\n4\nINFO\n8\nPROTOCOL\n", false },
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

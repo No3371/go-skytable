@@ -16,13 +16,13 @@ func TestConn_ExecSingleActionPacketRaw(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		args    []string
+		args    []any
 		want    any
 		wantErr bool
 	}{
-		{ "SetX", []string { "SET", "X", "100" }, protocol.RespOkay, false },
-		{ "SysInfoProtocol", []string { "SYS", "INFO", "PROTOCOL" }, skytable.ProtoVer, false },
-		{ "DelX", []string { "DEL", "X" }, uint64(1), false },
+		{ "SetX", []any { "SET", "X", 100 }, protocol.RespOkay, false },
+		{ "SysInfoProtocol", []any { "SYS", "INFO", "PROTOCOL" }, skytable.ProtoVer, false },
+		{ "DelX", []any { "DEL", "X" }, uint64(1), false },
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

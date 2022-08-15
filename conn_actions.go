@@ -295,7 +295,11 @@ func (c *Conn) Exec(ctx context.Context, packet *QueryPacket) ([]response.Respon
 	return rp.resps, nil
 }
 
-func (c *Conn) ExecSingleActionPacketRaw(segments ...string) (response.ResponseEntry, error) {
+// Allows executing a packet easily like:
+//     c.ExecSingleActionPacketRaw("SET", "X", 100)
+//
+// The arguments accept any type. The arguments are formatted internally with %v so most basic types should be supported.
+func (c *Conn) ExecSingleActionPacketRaw(segments ...any) (response.ResponseEntry, error) {
 	raw, err := c.BuildSingleActionPacketRaw(segments)
 	if err != nil {
 		return response.EmptyResponseEntry, err

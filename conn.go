@@ -174,7 +174,11 @@ func NewConnAuth(remote *net.TCPAddr, authProvider AuthProvider) (*Conn, error) 
 	return conn, nil
 }
 
-func (c *Conn) BuildSingleActionPacketRaw(segs []string) (raw string, err error) {
+// Allows building a packet easily like:
+//     c.BuildSingleActionPacketRaw("SET", "X", 100)
+//
+// The arguments accept any type. The arguments are formatted internally with %v so most basic types should be supported.
+func (c *Conn) BuildSingleActionPacketRaw(segs []any) (raw string, err error) {
 	c.strBuilder.Reset()
 	_, err = fmt.Fprint(c.strBuilder, "*1\n")
 	if err != nil {
@@ -189,14 +193,15 @@ func (c *Conn) BuildSingleActionPacketRaw(segs []string) (raw string, err error)
 	return c.strBuilder.String(), nil
 }
 
-func (c *Conn) appendSingleActionRaw(segs []string) (err error) {
+func (c *Conn) appendSingleActionRaw(segs []any) (err error) {
 	_, err = fmt.Fprintf(c.strBuilder, "~%d\n", len(segs))
 	if err != nil {
 		return err
 	}
 
 	for _, s := range segs {
-		_, err = fmt.Fprintf(c.strBuilder, "%d\n%s\n", len(s), s)
+		str := fmt.Sprintf("%v", s)
+		_, err = fmt.Fprintf(c.strBuilder, "%d\n%s\n", len(str), str)
 		if err != nil {
 			return err
 		}

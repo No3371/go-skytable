@@ -158,7 +158,7 @@ func (c *ConnPool) Exec(ctx context.Context, packet *QueryPacket) ([]response.Re
 	return conn.Exec(ctx, packet)
 }
 
-func (c *ConnPool) ExecSingleActionPacketRaw(segments ...string) (response.ResponseEntry, error) {
+func (c *ConnPool) ExecSingleActionPacketRaw(segments ...any) (response.ResponseEntry, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return response.EmptyResponseEntry, fmt.Errorf("*ConnPool.ExecSingleActionPacketRaw(): %w", err)

@@ -707,3 +707,20 @@ func TestAutoReconnect(t *testing.T) {
 		t.Fatalf("should not be InvalidUsage after auto reonnect: %s", err)
 	}
 }
+
+func TestInterface(t *testing.T) {
+	var st skytable.Skytable
+
+	st, err := NewConnNoAuth()
+	if err != nil {
+		t.Fatal("NewConnNoAuth:", err)
+	}
+
+	st, err = NewConnPoolNoAuth()
+	if err != nil {
+		t.Fatal("NewConnPoolNoAuth:", err)
+	}
+
+	st.Heya(context.Background(), "")
+
+}

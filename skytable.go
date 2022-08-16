@@ -37,10 +37,12 @@ type Skytable interface {
 	Set(ctx context.Context, key string, value any) error    // https://docs.skytable.io/actions/set
 	Update(ctx context.Context, key string, value any) error // https://docs.skytable.io/actions/update
 
+	USet(ctx context.Context, entries ...action.KVPair) (set uint64, err error)
+
 	// Pop(ctx context.Context, key string) (response.ResponseEntry, error)
 
 	Exec(ctx context.Context, packet *QueryPacket) ([]response.ResponseEntry, error)
-	ExecSingleActionPacketRaw(segments ...string) (response.ResponseEntry, error)
+	ExecSingleActionPacketRaw(segments ...any) (response.ResponseEntry, error)
 
 	// https://docs.skytable.io/ddl/#use
 	//

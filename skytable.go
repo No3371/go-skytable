@@ -52,14 +52,17 @@ type Skytable interface {
 	InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, error)             // https://docs.skytable.io/ddl/#inspect
 	CreateKeyspace(ctx context.Context, name string) error                          // https://docs.skytable.io/ddl/#keyspaces
 	DropKeyspace(ctx context.Context, name string) error                            // https://docs.skytable.io/ddl/#keyspaces-1
-	InspectKeyspace(ctx context.Context, name string) (*protocol.TypedArray, error) // https://docs.skytable.io/ddl/#keyspaces-2
+	// https://docs.skytable.io/ddl/#keyspaces-2
+	//
+	// If name is "", inspect the current keyspace
+	InspectKeyspace(ctx context.Context, name string) (*protocol.TypedArray, error)
 
 	CreateTable(ctx context.Context, path string, modelDesc any) error // https://docs.skytable.io/ddl/#tables
 	DropTable(ctx context.Context, path string) error                  // https://docs.skytable.io/ddl/#tables-1
 	// https://docs.skytable.io/ddl/#tables-2
 	//
-	// If name is "", inspect the current table
-	InspectTable (ctx context.Context, name string) (protocol.ModelDescription, error)
+	// If path is "", inspect the current table
+	InspectTable (ctx context.Context, path string) (protocol.ModelDescription, error)
 
 	SysInfoVersion(ctx context.Context) (string, error)   // https://docs.skytable.io/actions/sys#info
 	SysInfoProtocol(ctx context.Context) (string, error)  // https://docs.skytable.io/actions/sys#info

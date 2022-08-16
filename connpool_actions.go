@@ -302,15 +302,15 @@ func (c *ConnPool) DropTable(ctx context.Context, path string) error {
 
 // https://docs.skytable.io/ddl/#tables-2
 //
-// If name is "", inspect the current table
-func (c *ConnPool) InspectTable(ctx context.Context, name string) (protocol.ModelDescription, error) {
+// If path is "", inspect the current table
+func (c *ConnPool) InspectTable(ctx context.Context, path string) (protocol.ModelDescription, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return nil, fmt.Errorf("*ConnPool.InspectTable(): %w", err)
 	}
 	defer c.pushConn(conn)
 
-	return conn.InspectTable(ctx, name)
+	return conn.InspectTable(ctx, path)
 }
 
 // https://docs.skytable.io/actions/sys#info

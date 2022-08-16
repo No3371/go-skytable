@@ -277,7 +277,7 @@ func (c *Conn) USet(ctx context.Context, entries ...action.KVPair) (set uint64, 
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.USet{ Entries: entries },
+			action.USet{Entries: entries},
 		},
 	}
 
@@ -302,13 +302,12 @@ func (c *Conn) USet(ctx context.Context, entries ...action.KVPair) (set uint64, 
 	}
 }
 
-
 // https://docs.skytable.io/actions/pop
 func (c *Conn) Pop(ctx context.Context, key string) (response.ResponseEntry, error) {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.Pop{ Key: key },
+			action.Pop{Key: key},
 		},
 	}
 
@@ -574,9 +573,9 @@ func (c *Conn) DropTable(ctx context.Context, path string) error {
 
 // https://docs.skytable.io/ddl/#tables-2
 //
-// If name is "", inspect the current table
-func (c *Conn) InspectTable(ctx context.Context, name string) (protocol.ModelDescription, error) {
-	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action{action.InspectTable{Name: name}}))
+// If path is "", inspect the current table
+func (c *Conn) InspectTable(ctx context.Context, path string) (protocol.ModelDescription, error) {
+	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action{action.InspectTable{Path: path}}))
 	if err != nil {
 		return nil, err
 	}

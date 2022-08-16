@@ -19,6 +19,10 @@ var ErrNotImplementedDataType = errors.New("datatype not implemented")
 type ResponseEntry struct {
 	DataType protocol.DataType
 	Value    any
+
+	// Contains error when these happen:
+	// - The response is not expected (according to implemented protocol). (ValidateProtocol method))
+	// - The response is an error string (The response would be RespErrStr, the actual error string is cached to the err)
 	Err      error
 }
 

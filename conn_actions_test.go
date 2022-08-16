@@ -48,14 +48,14 @@ func TestConn_USet(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		entries    []action.KVPair
+		entries []action.KVPair
 		wantSet uint64
 		wantDel uint64
 		wantErr bool
 	}{
-		{ "1", []action.KVPair{ { K: "A", V: 100 } }, 1, 1, false },
-		{ "2", []action.KVPair{ { K: "A", V: 100 }, { K: "B", V: 1000 } }, 2, 2, false },
-		{ "3", []action.KVPair{ { K: "A", V: 100 }, { K: "A", V: 1000 }, { K: "A", V: 10000 } }, 3, 1, false },
+		{"1", []action.KVPair{{K: "A", V: 100}}, 1, 1, false},
+		{"2", []action.KVPair{{K: "A", V: 100}, {K: "B", V: 1000}}, 2, 2, false},
+		{"3", []action.KVPair{{K: "A", V: 100}, {K: "A", V: 1000}, {K: "A", V: 10000}}, 3, 1, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

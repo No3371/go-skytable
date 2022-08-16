@@ -441,12 +441,15 @@ func (c *Conn) DropKeyspace(ctx context.Context, name string) error {
 		switch resp {
 		case protocol.RespOkay:
 			return nil
+		case protocol.RespServerError:
+			return protocol.ErrCodeServerError
 		default:
 			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("DropKeyspace(): Unexpected response code: %s", resp), nil)
 		}
+	default:
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("DropKeyspace(): Unexpected response element: %v", resp), nil)
 	}
 
-	return nil
 }
 
 // https://docs.skytable.io/ddl/#use
@@ -468,12 +471,14 @@ func (c *Conn) Use(ctx context.Context, path string) error {
 		switch resp {
 		case protocol.RespOkay:
 			return nil
+		case protocol.RespServerError:
+			return protocol.ErrCodeServerError
 		default:
 			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("Update(): Unexpected response code: %s", resp), nil)
 		}
+	default:
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("DropKeyspace(): Unexpected response element: %v", resp), nil)
 	}
-
-	return nil
 }
 
 // https://docs.skytable.io/ddl/#keyspaces-2
@@ -489,7 +494,19 @@ func (c *Conn) InspectKeyspace(ctx context.Context, name string) (*protocol.Type
 		return nil, rp.resps[0].Err
 	}
 
-	return rp.resps[0].Value.(*protocol.TypedArray), nil
+	switch resp := rp.resps[0].Value.(type) {
+	case *protocol.TypedArray:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespServerError:
+			return nil, protocol.ErrCodeServerError
+		default:
+			return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("InspectKeyspace(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("InspectKeyspace(): Unexpected response element: %v", resp), nil)
+	}
 }
 
 // https://docs.skytable.io/ddl/#tables
@@ -513,12 +530,14 @@ func (c *Conn) CreateTable(ctx context.Context, path string, modelDesc any) erro
 		switch resp {
 		case protocol.RespOkay:
 			return nil
+		case protocol.RespServerError:
+			return protocol.ErrCodeServerError
 		default:
-			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("CreateTable(): Unexpected response code: %s", resp), nil)
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("CreateTable(): Unexpected response code: %v", resp), nil)
 		}
+	default:
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("InspectKeyspace(): Unexpected response element: %v", resp), nil)
 	}
-
-	return nil
 }
 
 // https://docs.skytable.io/ddl/#tables-1
@@ -539,12 +558,14 @@ func (c *Conn) DropTable(ctx context.Context, path string) error {
 		switch resp {
 		case protocol.RespOkay:
 			return nil
+		case protocol.RespServerError:
+			return protocol.ErrCodeServerError
 		default:
 			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("DropTable(): Unexpected response code: %s", resp), nil)
 		}
+	default:
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("InspectKeyspace(): Unexpected response element: %v", resp), nil)
 	}
-
-	return nil
 }
 
 // func (c *Conn) InspectCurrentTable(ctx context.Context) (interface{}, error) {

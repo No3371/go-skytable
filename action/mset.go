@@ -8,24 +8,17 @@ import (
 )
 
 type MSetA struct {
-	entries []MSetAEntry
+	entries []KVPair
 }
 
-type MSetAEntry struct {
-	k string
-	v any
-}
-
-
-func NewMSetA(entries []MSetAEntry) *MSetA {
+func NewMSetA(entries []KVPair) *MSetA {
 	return &MSetA{
 		entries: entries,
 	}
 }
 
-
 func (q MSetA) AppendToPacket(builder *strings.Builder) error {
-	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, len(q.entries) * 2 + 1, builder)
+	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, len(q.entries)*2+1, builder)
 	if err != nil {
 		return err
 	}
@@ -36,12 +29,12 @@ func (q MSetA) AppendToPacket(builder *strings.Builder) error {
 	}
 
 	for _, e := range q.entries {
-		err = AppendElement(e.k, builder, false)
+		err = AppendElement(e.K, builder, false)
 		if err != nil {
 			return err
 		}
 
-		err = AppendElement(e.v, builder, false)
+		err = AppendElement(e.V, builder, false)
 		if err != nil {
 			return err
 		}
@@ -66,19 +59,19 @@ func (q MSetA) ValidateProtocol(response interface{}) error {
 }
 
 type MSetB struct {
-	keys []string
+	keys   []string
 	values []any
 }
 
 func NewMSetB(keys []string, values []any) *MSetB {
-	return &MSetB {
-		keys: keys,
+	return &MSetB{
+		keys:   keys,
 		values: values,
 	}
 }
 
 func (q MSetB) AppendToPacket(builder *strings.Builder) error {
-	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, len(q.keys) * 2 + 1, builder)
+	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, len(q.keys)*2+1, builder)
 	AppendElement("MSET", builder, false)
 	for i := range q.keys {
 		AppendElement(q.keys[i], builder, false)

@@ -192,7 +192,7 @@ func (c *Conn) MSet(ctx context.Context, keys []string, values []any) (set uint6
 
 // MSet returns the actual number of the keys set.
 // This is just an alternative MSet with different signature.
-func (c *Conn) MSetA(ctx context.Context, entries []action.MSetAEntry) (set uint64, err error) {
+func (c *Conn) MSetA(ctx context.Context, entries []action.KVPair) (set uint64, err error) {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
@@ -272,13 +272,35 @@ func (c *Conn) Update(ctx context.Context, key string, value any) error {
 	}
 }
 
-// func (c *Conn) UpdateString(ctx context.Context, key string, value string) error {
-// 	panic("not implemented") // TODO: Implement
-// }
+// https://docs.skytable.io/actions/uset
+func (c *Conn) USet(ctx context.Context, entries ...action.KVPair) (set uint64, err error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.USet{ Entries: entries },
+		},
+	}
 
-// func (c *Conn) UpdateBytes(ctx context.Context, key string, value []byte) error {
-// 	panic("not implemented") // TODO: Implement
-// }
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return 0, err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case uint64:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespServerError:
+			return 0, protocol.ErrCodeServerError
+		default:
+			return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("USet(): Unexpected response code: %s", resp), nil)
+
+		}
+	default:
+		return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("USet(): Unexpected response element: %v", resp), nil)
+	}
+}
 
 // func (c *Conn) Pop(ctx context.Context, key string) (protocol.DataType, any, error) {
 // 	panic("not implemented") // TODO: Implement
@@ -296,7 +318,8 @@ func (c *Conn) Exec(ctx context.Context, packet *QueryPacket) ([]response.Respon
 }
 
 // Allows executing a packet easily like:
-//     c.ExecSingleActionPacketRaw("SET", "X", 100)
+//
+//	c.ExecSingleActionPacketRaw("SET", "X", 100)
 //
 // The arguments accept any type. The arguments are formatted internally with %v so most basic types should be supported.
 func (c *Conn) ExecSingleActionPacketRaw(segments ...any) (response.ResponseEntry, error) {

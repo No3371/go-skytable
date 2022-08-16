@@ -117,6 +117,22 @@ func (c *ConnX) SetWithSimTTL(ctx context.Context, key string, value []byte) err
 }
 
 // SimTTL only works with BinaryString values
+func (c *ConnX) USetWithSimTTL(ctx context.Context, entries ...action.KVPair) error {
+    ts := make([]byte, 8)
+    binary.BigEndian.PutUint64(ts, uint64(time.Now().UnixMilli()))
+
+	newEntries := make([]action.KVPair, len(entries) * 2)
+	for i, entry := range entries {
+		newEntries[i] = entry
+		newEntries[i + 1] = action.KVPair{ K: entry.K + "_timestamp", V: ts }
+	}
+
+	c.USet(ctx, newEntries...)
+
+	return nil
+}
+
+// SimTTL only works with BinaryString values
 func (c *ConnX) UpdateWithSimTTL(ctx context.Context, key string, value []byte) error {
     ts := make([]byte, 8)
     binary.BigEndian.PutUint64(ts, uint64(time.Now().UnixMilli()))
@@ -233,6 +249,18 @@ func (c *ConnPoolX) SetWithSimTTL(ctx context.Context, key string, value []byte)
 
 	x := ConnX{ *conn }
 	return x.SetWithSimTTL(ctx, key, value)
+}
+
+// SimTTL only works with BinaryString values
+func (c *ConnPoolX) USetWithSimTTL(ctx context.Context, entries ...action.KVPair) error {
+	conn, pusher, err := c.RentConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPoolX.USetWithSimTTL(): %w", err)
+	}
+	defer pusher ()
+
+	x := ConnX{ *conn }
+	return x.USetWithSimTTL(ctx, entries...)
 }
 
 // SimTTL only works with BinaryString values

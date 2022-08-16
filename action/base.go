@@ -9,7 +9,12 @@ import (
 	"github.com/No3371/go-skytable/protocol"
 )
 
-func AppendElements (builder *strings.Builder, typed bool, v... any) error {
+type KVPair struct {
+	K string
+	V any
+}
+
+func AppendElements(builder *strings.Builder, typed bool, v ...any) error {
 	for _, e := range v {
 		err := AppendElement(e, builder, typed)
 		if err != nil {

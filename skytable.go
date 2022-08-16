@@ -39,7 +39,7 @@ type Skytable interface {
 
 	USet(ctx context.Context, entries ...action.KVPair) (set uint64, err error)
 
-	// Pop(ctx context.Context, key string) (response.ResponseEntry, error)
+	Pop(ctx context.Context, key string) (response.ResponseEntry, error)
 
 	Exec(ctx context.Context, packet *QueryPacket) ([]response.ResponseEntry, error)
 	ExecSingleActionPacketRaw(segments ...any) (response.ResponseEntry, error)

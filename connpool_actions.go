@@ -155,9 +155,37 @@ func (c *ConnPool) USet(ctx context.Context, entries ...action.KVPair) (set uint
 	return conn.USet(ctx, entries...)
 }
 
-// func (c *ConnPool) Pop(ctx context.Context, key string) (protocol.DataType, any, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
+func (c *ConnPool) Pop(ctx context.Context, key string) (response.ResponseEntry, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return response.EmptyResponseEntry, fmt.Errorf("*ConnPool.Pop(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.Pop(ctx, key)
+}
+
+// PopString() is a strict version of [Pop] that only success if the value is stored as String in Skytable.
+func (c *ConnPool) PopString(ctx context.Context, key string) (string, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return "", fmt.Errorf("*ConnPool.PopString(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.PopString(ctx, key)
+}
+
+// PopBytes() is a strict version of [Pop] that only success if the value is stored as BinaryString in Skytable.
+func (c *ConnPool) PopBytes(ctx context.Context, key string) ([]byte, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return nil, fmt.Errorf("*ConnPool.PopBytes(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.PopBytes(ctx, key)
+}
 
 func (c *ConnPool) Exec(ctx context.Context, packet *QueryPacket) ([]response.ResponseEntry, error) {
 	conn, err := c.popConn(false)

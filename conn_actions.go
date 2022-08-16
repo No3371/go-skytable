@@ -122,7 +122,7 @@ func (c *Conn) Get(ctx context.Context, key string) (response.ResponseEntry, err
 	return rp.resps[0], nil
 }
 
-// GetString() is a strict version of Get() that only success if the value is stored as String in Skytable.
+// GetString() is a strict version of [Get] that only success if the value is stored as String in Skytable.
 func (c *Conn) GetString(ctx context.Context, key string) (string, error) {
 	rp, err := c.Get(ctx, key)
 	if err != nil {
@@ -139,7 +139,7 @@ func (c *Conn) GetString(ctx context.Context, key string) (string, error) {
 	}
 }
 
-// GetBytes() is a strict version of GET that only success if the value is stored as BinaryString in Skytable.
+// GetBytes() is a strict version of [Get] that only success if the value is stored as BinaryString in Skytable.
 func (c *Conn) GetBytes(ctx context.Context, key string) ([]byte, error) {
 	rp, err := c.Get(ctx, key)
 	if err != nil {
@@ -302,9 +302,57 @@ func (c *Conn) USet(ctx context.Context, entries ...action.KVPair) (set uint64, 
 	}
 }
 
-// func (c *Conn) Pop(ctx context.Context, key string) (protocol.DataType, any, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
+
+// https://docs.skytable.io/actions/pop
+func (c *Conn) Pop(ctx context.Context, key string) (response.ResponseEntry, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.Pop{ Key: key },
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return response.EmptyResponseEntry, err
+	}
+
+	return rp.resps[0], nil
+}
+
+// PopString() is a strict version of [Pop] that only success if the value is stored as String in Skytable.
+func (c *Conn) PopString(ctx context.Context, key string) (string, error) {
+	rp, err := c.Pop(ctx, key)
+	if err != nil {
+		return "", err
+	}
+
+	switch resp := rp.Value.(type) {
+	case string:
+		return resp, nil
+	case []byte:
+		return string(resp), protocol.ErrWrongDataType
+	default:
+		return "", protocol.NewUnexpectedProtocolError(fmt.Sprintf("PopString(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// PopBytes() is a strict version of [Pop] that only success if the value is stored as BinaryString in Skytable.
+func (c *Conn) PopBytes(ctx context.Context, key string) ([]byte, error) {
+	rp, err := c.Pop(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+
+	switch resp := rp.Value.(type) {
+	case string:
+		return []byte(resp), protocol.ErrWrongDataType
+	case []byte:
+		return resp, nil
+	default:
+		return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("PopBytes(): Unexpected response element: %v", resp), nil)
+	}
+}
 
 func (c *Conn) Exec(ctx context.Context, packet *QueryPacket) ([]response.ResponseEntry, error) {
 	packet.ctx = ctx

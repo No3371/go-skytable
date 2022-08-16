@@ -64,6 +64,57 @@ func (c *ConnX) GetWithSimTTL(ctx context.Context, key string) (resp []byte, tsU
 }
 
 // SimTTL only works with BinaryString values
+func (c *ConnX) PopWithSimTTL(ctx context.Context, key string) (resp []byte, tsUnix time.Time, err error) {
+	p := skytable.NewQueryPacket( []skytable.Action {
+		action.Pop{ Key: key },
+		action.Pop{ Key: key + "_timestamp" },
+	})
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return nil, time.Time{}, err
+	}
+
+	resps := rp.Resps()
+	if resps[0].Err != nil {
+		return nil, time.Time{}, fmt.Errorf("PopWithSimTTL: failed to pop value with key '%s': %w", key, err)
+	}
+	if resps[1].Err != nil {
+		return nil, time.Time{}, fmt.Errorf("PopWithSimTTL: failed to pop simulated TTL with key '%s.timestamp': %w", key, err)
+	}
+
+	switch resp := resps[0].Value.(type) {
+	case []byte:
+		break
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespNil:
+			return nil, time.Time{}, protocol.ErrCodeNil
+		case protocol.RespServerError:
+			return nil, time.Time{}, protocol.ErrCodeServerError
+		}
+	default:
+		return nil, time.Time{}, protocol.NewUnexpectedProtocolError(fmt.Sprintf("PopWithSimTTL(): Unexpected response element: %v", resp), nil)
+	}
+
+	switch resp := resps[1].Value.(type) {
+	case []byte:
+		break
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespNil:
+			return nil, time.Time{}, protocol.ErrCodeNil
+		case protocol.RespServerError:
+			return nil, time.Time{}, protocol.ErrCodeServerError
+		}
+	default:
+		return nil, time.Time{}, protocol.NewUnexpectedProtocolError(fmt.Sprintf("PopWithSimTTL(): Unexpected TTL element: %v", resp), nil)
+	}
+
+	return rp.Resps()[0].Value.([]byte), time.UnixMilli(int64(binary.BigEndian.Uint64(resps[1].Value.([]byte)))), nil
+}
+
+// SimTTL only works with BinaryString values
 func (c *ConnX) SetWithSimTTL(ctx context.Context, key string, value []byte) error {
     ts := make([]byte, 8)
     binary.BigEndian.PutUint64(ts, uint64(time.Now().UnixMilli()))
@@ -237,6 +288,18 @@ func (c *ConnPoolX) GetWithSimTTL(ctx context.Context, key string) (resp []byte,
 
 	x := ConnX{ *conn }
 	return x.GetWithSimTTL(ctx, key)
+}
+
+// SimTTL only works with BinaryString values
+func (c *ConnPoolX) PopWithSimTTL(ctx context.Context, key string) (resp []byte, tsUnix time.Time, err error) {
+	conn, pusher, err := c.RentConn(false)
+	if err != nil {
+		return nil, time.Time{}, fmt.Errorf("*ConnPoolX.PopWithSimTTL(): %w", err)
+	}
+	defer pusher ()
+
+	x := ConnX{ *conn }
+	return x.PopWithSimTTL(ctx, key)
 }
 
 // SimTTL only works with BinaryString values

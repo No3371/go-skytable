@@ -125,7 +125,7 @@ resp, err := c.BuildAndExecQuery(p)
 - [X] EXISTS
 - [X] HEYA
 - [X] USET
-- [ ] POP
+- [X] POP
 - [ ] MPOP
 - [ ] MUPDATE
 - [ ] SDEL

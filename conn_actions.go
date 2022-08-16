@@ -551,18 +551,33 @@ func (c *Conn) DropTable(ctx context.Context, path string) error {
 // 	panic("not implemented") // TODO: Implement
 // }
 
-// func (c *Conn) InspectTable(ctx context.Context, name string) (protocol.ModelDescription, error) {
-// 	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action{action.InspectTable{Name: name}}))
-// 	if err != nil {
-// 		return nil, err
-// 	}
+// https://docs.skytable.io/ddl/#tables-2
+//
+// If name is "", inspect the current table
+func (c *Conn) InspectTable(ctx context.Context, name string) (protocol.ModelDescription, error) {
+	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action{action.InspectTable{Name: name}}))
+	if err != nil {
+		return nil, err
+	}
 
-// 	if rp.resps[0].Err != nil {
-// 		return nil, rp.resps[0].Err
-// 	}
+	if rp.resps[0].Err != nil {
+		return nil, rp.resps[0].Err
+	}
 
-// 	return rp.resps[0].Value.(*protocol.TypedArray), nil
-// }
+	switch resp := rp.resps[0].Value.(type) {
+	case string:
+		return protocol.ParseDescription(resp)
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespServerError:
+			return nil, protocol.ErrCodeServerError
+		default:
+			return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("InspectKeyspace(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("InspectKeyspace(): Unexpected response element: %v", resp), nil)
+	}
+}
 
 // https://docs.skytable.io/actions/sys#info
 func (c *Conn) SysInfoVersion(ctx context.Context) (string, error) {

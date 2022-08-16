@@ -84,3 +84,37 @@ func TestConn_USet(t *testing.T) {
 		})
 	}
 }
+
+func TestConn_InspectTable(t *testing.T) {
+	c, err := NewConnNoAuth()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name    string
+		want    protocol.ModelDescription
+		wantErr bool
+	}{
+		{"default:default",
+			protocol.KeyMapDescription{
+				KeyType:   protocol.DDLDataTypes_BinaryString,
+				ValueType: protocol.DDLDataTypes_BinaryString,
+				Volatile:  false,
+			},
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := c.InspectTable(context.Background(), tt.name)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Conn.InspectTable() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Conn.InspectTable() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

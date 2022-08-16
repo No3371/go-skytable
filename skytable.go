@@ -56,7 +56,10 @@ type Skytable interface {
 
 	CreateTable(ctx context.Context, path string, modelDesc any) error // https://docs.skytable.io/ddl/#tables
 	DropTable(ctx context.Context, path string) error                  // https://docs.skytable.io/ddl/#tables-1
-	// InspectTable (ctx context.Context, name string) (interface{}, error)
+	// https://docs.skytable.io/ddl/#tables-2
+	//
+	// If name is "", inspect the current table
+	InspectTable (ctx context.Context, name string) (protocol.ModelDescription, error)
 
 	SysInfoVersion(ctx context.Context) (string, error)   // https://docs.skytable.io/actions/sys#info
 	SysInfoProtocol(ctx context.Context) (string, error)  // https://docs.skytable.io/actions/sys#info

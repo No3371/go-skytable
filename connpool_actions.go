@@ -300,17 +300,18 @@ func (c *ConnPool) DropTable(ctx context.Context, path string) error {
 	return conn.DropTable(ctx, path)
 }
 
-// func (c *ConnPool) UseTable(ctx context.Context, name string) error {
-// 	panic("not implemented") // TODO: Implement
-// }
+// https://docs.skytable.io/ddl/#tables-2
+//
+// If name is "", inspect the current table
+func (c *ConnPool) InspectTable(ctx context.Context, name string) (protocol.ModelDescription, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return nil, fmt.Errorf("*ConnPool.InspectTable(): %w", err)
+	}
+	defer c.pushConn(conn)
 
-// func (c *ConnPool) InspectCurrentTable(ctx context.Context) (interface{}, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
-
-// func (c *ConnPool) InspectTable(ctx context.Context, name string) (interface{}, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
+	return conn.InspectTable(ctx, name)
+}
 
 // https://docs.skytable.io/actions/sys#info
 func (c *ConnPool) SysInfoVersion(ctx context.Context) (string, error) {

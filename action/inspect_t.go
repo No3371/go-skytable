@@ -46,6 +46,8 @@ func (q InspectTable) ValidateProtocol(response interface{}) error {
 		return nil
 	case protocol.ResponseCode:
 		switch response {
+		case protocol.RespErrStr:
+			return nil
 		case protocol.RespServerError:
 			return nil
 		default:

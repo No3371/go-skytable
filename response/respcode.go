@@ -6,6 +6,7 @@ import (
 	"github.com/No3371/go-skytable/protocol"
 )
 
+// The method returns either (code, nil) or (RespErrStr, ErrorStringResponse)
 func (rr ResponseReader) readResponseCode(chars int64) (protocol.ResponseCode, error) {
 	read, err := rr.reader.ReadBytes('\n')
 	if err != nil {

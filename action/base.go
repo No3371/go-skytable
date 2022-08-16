@@ -69,17 +69,41 @@ func AppendElement(v interface{}, builder *strings.Builder, typed bool) error {
 				fmt.Fprintf(builder, "1\n%d\n", v)
 			}
 		}
-	case int32:
+	case int: // as int64
 		if typed {
-			fmt.Fprintf(builder, ";%d\n%d\n", int32(math.Log10(float64(v)))+1, v)
+			fmt.Fprintf(builder, ";%d\n%d\n", int64(math.Log10(float64(v)))+1, v)
 		} else {
-			fmt.Fprintf(builder, "%d\n%d\n", int32(math.Log10(float64(v)))+1, v)
+			fmt.Fprintf(builder, "%d\n%d\n", int64(math.Log10(float64(v)))+1, v)
 		}
-	case uint32:
+	case int32: // as int64
 		if typed {
-			fmt.Fprintf(builder, ":%d\n%d\n", uint32(math.Log10(float64(v)))+1, v)
+			fmt.Fprintf(builder, ";%d\n%d\n", int64(math.Log10(float64(v)))+1, v)
 		} else {
-			fmt.Fprintf(builder, "%d\n%d\n", uint32(math.Log10(float64(v)))+1, v)
+			fmt.Fprintf(builder, "%d\n%d\n", int64(math.Log10(float64(v)))+1, v)
+		}
+	case int64:
+		if typed {
+			fmt.Fprintf(builder, ";%d\n%d\n", int64(math.Log10(float64(v)))+1, v)
+		} else {
+			fmt.Fprintf(builder, "%d\n%d\n", int64(math.Log10(float64(v)))+1, v)
+		}
+	case uint: // as uint64
+		if typed {
+			fmt.Fprintf(builder, ":%d\n%d\n", uint64(math.Log10(float64(v)))+1, v)
+		} else {
+			fmt.Fprintf(builder, "%d\n%d\n", uint64(math.Log10(float64(v)))+1, v)
+		}
+	case uint32: // as uint64
+		if typed {
+			fmt.Fprintf(builder, ":%d\n%d\n", uint64(math.Log10(float64(v)))+1, v)
+		} else {
+			fmt.Fprintf(builder, "%d\n%d\n", uint64(math.Log10(float64(v)))+1, v)
+		}
+	case uint64:
+		if typed {
+			fmt.Fprintf(builder, ":%d\n%d\n", uint64(math.Log10(float64(v)))+1, v)
+		} else {
+			fmt.Fprintf(builder, "%d\n%d\n", uint64(math.Log10(float64(v)))+1, v)
 		}
 	case float32:
 		if typed {
@@ -181,7 +205,7 @@ func AppendElement(v interface{}, builder *strings.Builder, typed bool) error {
 			return protocol.ErrIncorrectArrayUsage
 		}
 	default:
-		return protocol.NewUnexpectedProtocolError("Appending an unexpected element", nil)
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("Appending an unexpected element: %v (%T)", v, v), nil)
 	}
 
 	return nil

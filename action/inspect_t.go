@@ -18,15 +18,15 @@ type InspectTable struct {
 // ⚠️ Only use this when sending packets contains this action only.
 func FormatSingleInspectTablePacket(path string) string {
 	if path == "" {
-		return "*1\n~3\n7\nINSPECT\n5\nTABLE\n"
+		return "*1\n~2\n7\nINSPECT\n5\nTABLE\n"
 	} else {
-		return fmt.Sprintf("*1\n~3\n7\nINSPECT\n5\nTable\n%d\n%s\n", len(path), path)
+		return fmt.Sprintf("*1\n~3\n7\nINSPECT\n5\nTABLE\n%d\n%s\n", len(path), path)
 	}
 }
 
 func (q InspectTable) AppendToPacket(builder *strings.Builder) error {
 	if q.Path == "" {
-		_, err := builder.WriteString("~3\n4\nINSPECT\n5\nTABLE\n")
+		_, err := builder.WriteString("~2\n7\nINSPECT\n5\nTABLE\n")
 		if err != nil {
 			return err
 		}

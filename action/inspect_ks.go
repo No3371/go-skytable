@@ -15,15 +15,15 @@ type InspectKeyspace struct {
 
 func FormatSingleInspectKeyspacePacket(name string) string {
 	if name == "" {
-		return "*1\n~3\n4\nINSPECT\n8\nKEYSPACE\n"
+		return "*1\n~2\n7\nINSPECT\n8\nKEYSPACE\n"
 	} else {
-		return fmt.Sprintf("*1\n~3\n4\nINSPECT\n8\nKEYSPACE\n%d\n%s\n", len(name), name)
+		return fmt.Sprintf("*1\n~3\n7\nINSPECT\n8\nKEYSPACE\n%d\n%s\n", len(name), name)
 	}
 }
 
 func (q InspectKeyspace) AppendToPacket(builder *strings.Builder) error {
 	if q.Name == "" {
-		_, err := builder.WriteString("~3\n4\nINSPECT\n8\nKEYSPACE\n")
+		_, err := builder.WriteString("~2\n7\nINSPECT\n8\nKEYSPACE\n")
 		if err != nil {
 			return err
 		}

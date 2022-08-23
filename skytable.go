@@ -69,6 +69,8 @@ type Skytable interface {
 	SysInfoProtoVer(ctx context.Context) (float32, error) // https://docs.skytable.io/actions/sys#info
 	// SysMetricHealth (ctx context.Context) (string, error)
 	// SysMetricStorage (ctx context.Context) (uint64, error)
+
+	MKSnap (ctx context.Context, name string) error // https://docs.skytable.io/actions/mksnap
 }
 
 type SkytablePool interface {

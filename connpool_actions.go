@@ -353,3 +353,14 @@ func (c *ConnPool) SysInfoProtoVer(ctx context.Context) (float32, error) {
 // func (c *ConnPool) SysMetricStorage(ctx context.Context) (uint64, error) {
 // 	panic("not implemented") // TODO: Implement
 // }
+
+// https://docs.skytable.io/actions/mksnap
+func (c *ConnPool) MKSnap (ctx context.Context, name string) error {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPool.MKSnap(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.MKSnap(ctx, name)
+}

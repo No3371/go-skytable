@@ -656,3 +656,29 @@ func (c *Conn) SysInfoProtoVer(ctx context.Context) (float32, error) {
 // func (c *Conn) SysMetricStorage(ctx context.Context) (uint64, error) {
 // 	panic("not implemented") // TODO: Implement
 // }
+
+// https://docs.skytable.io/actions/mksnap
+func (c *Conn) MKSnap (ctx context.Context, name string) error {
+	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action{action.MKSnap{Name: name}}))
+	if err != nil {
+		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespOkay:
+			return nil
+		case protocol.RespServerError:
+			return protocol.ErrCodeServerError
+		default:
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("InspectKeyspace(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("InspectKeyspace(): Unexpected response element: %v", resp), nil)
+	}
+}

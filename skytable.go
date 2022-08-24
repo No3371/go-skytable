@@ -80,6 +80,10 @@ type Skytable interface {
 	// If entity is "", check the current table
 	DBSize (ctx context.Context, entity string) (uint64, error)
 	KeyLen (ctx context.Context, key string) (uint64, error) // https://docs.skytable.io/actions/keylen
+	// https://docs.skytable.io/actions/flushdb
+	//
+	// If entity is "", flush the current table
+	FlushDB (ctx context.Context, entity string) error
 }
 
 type SkytablePool interface {

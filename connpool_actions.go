@@ -421,3 +421,16 @@ func (c *ConnPool) SysMetricStorage (ctx context.Context) (uint64, error) {
 
 	return conn.SysMetricStorage(ctx)
 }
+
+// https://docs.skytable.io/actions/flushdb
+//
+// If entity is "", flush the current table
+func (c *ConnPool) FlushDB (ctx context.Context, entity string) error {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPool.FlushDB(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.FlushDB(ctx, entity)
+}

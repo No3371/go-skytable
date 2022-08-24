@@ -804,3 +804,37 @@ func (c *Conn) SysMetricStorage (ctx context.Context) (uint64, error) {
 		return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("SysMetricStorage(): Unexpected response element: %v", resp), nil)
 	}
 }
+
+// https://docs.skytable.io/actions/flushdb
+//
+// If entity is "", flush the current table
+func (c *Conn) FlushDB (ctx context.Context, entity string) (err error) {
+	var rp *RawResponsePacket
+	if entity == "" {
+		rp, err = c.ExecRaw("*1\n~1\n7\nFLUSHDB\n")
+	} else {
+		rp, err = c.ExecRaw(fmt.Sprintf("*1\n~2\n7\nFLUSHDB\n%d\n%s\n", len(entity), entity))
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespOkay:
+			return nil
+		case protocol.RespServerError:
+			return protocol.ErrCodeServerError
+		default:
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("FlushDB(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("FlushDB(): Unexpected response element: %v", resp), nil)
+	}
+}

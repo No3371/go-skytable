@@ -713,9 +713,9 @@ func (c *Conn) WhereAmI (ctx context.Context) (string, error) {
 func (c *Conn) DBSize (ctx context.Context, entity string) (size uint64, err error) {
 	var rp *RawResponsePacket
 	if entity == "" {
-		rp, err = c.ExecRaw("*1\n~1\n1\nDBSIZE\n")
+		rp, err = c.ExecRaw("*1\n~1\n6\nDBSIZE\n")
 	} else {
-		rp, err = c.ExecRaw(fmt.Sprintf("*1\n~2\n1\nDBSIZE\n%d\n%s\n", len(entity), entity))
+		rp, err = c.ExecRaw(fmt.Sprintf("*1\n~2\n6\nDBSIZE\n%d\n%s\n", len(entity), entity))
 	}
 
 	if err != nil {

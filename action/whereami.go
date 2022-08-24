@@ -27,7 +27,7 @@ func (q WhereAmI) ValidateProtocol(response interface{}) error {
 		case protocol.RespServerError:
 			return nil
 		default:
-			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("WhereAmI: Unexpected response element: %v", response), nil)
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("WhereAmI: Unexpected response code: %v", response), nil)
 		}
 	default:
 		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("WhereAmI: Unexpected response element: %v", response), nil)

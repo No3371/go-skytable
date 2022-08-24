@@ -59,7 +59,7 @@ func (q InspectKeyspace) ValidateProtocol(response interface{}) error {
 		case protocol.RespServerError:
 			return nil
 		default:
-			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("InspectKeyspace: Unexpected response element: %v", response), nil)
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("InspectKeyspace: Unexpected response code: %v", response), nil)
 		}
 	default:
 		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("InspectKeyspace: Unexpected response element: %v", response), nil)

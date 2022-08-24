@@ -397,3 +397,27 @@ func (c *ConnPool) KeyLen (ctx context.Context, key string) (uint64, error) {
 
 	return conn.KeyLen(ctx, key)
 }
+
+// https://docs.skytable.io/actions/sys#metric
+//
+// Returns true if "good", false when "critical"
+func (c *ConnPool) SysMetricHealth (ctx context.Context) (bool, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return false, fmt.Errorf("*ConnPool.SysMetricHealth(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.SysMetricHealth(ctx)
+}
+
+// https://docs.skytable.io/actions/sys#metric
+func (c *ConnPool) SysMetricStorage (ctx context.Context) (uint64, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return 0, fmt.Errorf("*ConnPool.SysMetricStorage(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.SysMetricStorage(ctx)
+}

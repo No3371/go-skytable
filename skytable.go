@@ -67,8 +67,11 @@ type Skytable interface {
 	SysInfoVersion(ctx context.Context) (string, error)   // https://docs.skytable.io/actions/sys#info
 	SysInfoProtocol(ctx context.Context) (string, error)  // https://docs.skytable.io/actions/sys#info
 	SysInfoProtoVer(ctx context.Context) (float32, error) // https://docs.skytable.io/actions/sys#info
-	// SysMetricHealth (ctx context.Context) (string, error)
-	// SysMetricStorage (ctx context.Context) (uint64, error)
+	// https://docs.skytable.io/actions/sys#metric
+	//
+	// Returns true if "good", false when "critical"
+	SysMetricHealth (ctx context.Context) (bool, error)
+	SysMetricStorage (ctx context.Context) (uint64, error) // https://docs.skytable.io/actions/sys#metric
 
 	MKSnap (ctx context.Context, name string) error // https://docs.skytable.io/actions/mksnap
 	WhereAmI (ctx context.Context) (string, error) // https://docs.skytable.io/actions/whereami

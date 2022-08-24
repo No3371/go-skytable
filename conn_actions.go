@@ -759,3 +759,48 @@ func (c *Conn) KeyLen (ctx context.Context, key string) (uint64, error) {
 		return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("KeyLen(): Unexpected response element: %v", resp), nil)
 	}
 }
+
+// https://docs.skytable.io/actions/sys#metric
+func (c *Conn) SysMetricHealth (ctx context.Context) (bool, error) {
+	rp, err := c.ExecRaw("*1\n~3\n3\nSYS\n6\nMETRIC\n6\nHEALTH\n")
+	if err != nil {
+		return false, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return false, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case string:
+		switch resp {
+		case "good":
+			return true, nil
+		case "critical":
+			return false, nil
+		default:
+			return false, protocol.NewUnexpectedProtocolError(fmt.Sprintf("SysMetricHealth(): Unexpected response string: %v", resp), nil)
+		}
+	default:
+		return false, protocol.NewUnexpectedProtocolError(fmt.Sprintf("SysMetricHealth(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/sys#metric
+func (c *Conn) SysMetricStorage (ctx context.Context) (uint64, error) {
+	rp, err := c.ExecRaw("*1\n~3\n3\nSYS\n6\nMETRIC\n7\nSTORAGE\n")
+	if err != nil {
+		return 0, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return 0, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case uint64:
+		return resp, nil
+	default:
+		return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("SysMetricStorage(): Unexpected response element: %v", resp), nil)
+	}
+}

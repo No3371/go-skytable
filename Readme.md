@@ -146,8 +146,8 @@ resp, err := c.BuildAndExecQuery(p)
 - [X] SYS INFO VERSION
 - [X] SYS INFO PROTOCOL
 - [X] SYS INFO PROTOVER
-- [ ] SYS METRIC HEALTH
-- [ ] SYS METRIC STORAGE
+- [X] SYS METRIC HEALTH
+- [X] SYS METRIC STORAGE
 
 ## SkytableX
 

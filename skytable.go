@@ -71,6 +71,7 @@ type Skytable interface {
 	// SysMetricStorage (ctx context.Context) (uint64, error)
 
 	MKSnap (ctx context.Context, name string) error // https://docs.skytable.io/actions/mksnap
+	WhereAmI (ctx context.Context) (string, error) // https://docs.skytable.io/actions/whereami
 }
 
 type SkytablePool interface {

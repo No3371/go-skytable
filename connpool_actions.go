@@ -364,3 +364,14 @@ func (c *ConnPool) MKSnap (ctx context.Context, name string) error {
 
 	return conn.MKSnap(ctx, name)
 }
+
+// https://docs.skytable.io/actions/whereami
+func (c *ConnPool) WhereAmI (ctx context.Context) (string, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return "", fmt.Errorf("*ConnPool.WhereAmI(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.WhereAmI(ctx)
+}

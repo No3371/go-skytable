@@ -682,3 +682,29 @@ func (c *Conn) MKSnap (ctx context.Context, name string) error {
 		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("InspectKeyspace(): Unexpected response element: %v", resp), nil)
 	}
 }
+
+// https://docs.skytable.io/actions/whereami
+func (c *Conn) WhereAmI (ctx context.Context) (string, error) {
+	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action{action.WhereAmI{}}))
+	if err != nil {
+		return "", err
+	}
+
+	if rp.resps[0].Err != nil {
+		return "", rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case string:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespServerError:
+			return "", protocol.ErrCodeServerError
+		default:
+			return "", protocol.NewUnexpectedProtocolError(fmt.Sprintf("WhereAmI(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return "", protocol.NewUnexpectedProtocolError(fmt.Sprintf("WhereAmI(): Unexpected response element: %v", resp), nil)
+	}
+}

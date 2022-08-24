@@ -708,3 +708,54 @@ func (c *Conn) WhereAmI (ctx context.Context) (string, error) {
 		return "", protocol.NewUnexpectedProtocolError(fmt.Sprintf("WhereAmI(): Unexpected response element: %v", resp), nil)
 	}
 }
+
+// https://docs.skytable.io/actions/dbsize
+func (c *Conn) DBSize (ctx context.Context, entity string) (size uint64, err error) {
+	var rp *RawResponsePacket
+	if entity == "" {
+		rp, err = c.ExecRaw("*1\n~1\n1\nDBSIZE\n")
+	} else {
+		rp, err = c.ExecRaw(fmt.Sprintf("*1\n~2\n1\nDBSIZE\n%d\n%s\n", len(entity), entity))
+	}
+
+	if err != nil {
+		return 0, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return 0, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case uint64:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespServerError:
+			return 0, protocol.ErrCodeServerError
+		default:
+			return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("DBSize(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("DBSize(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/keylen
+func (c *Conn) KeyLen (ctx context.Context, key string) (uint64, error) {
+	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action{action.KeyLen{}}))
+	if err != nil {
+		return 0, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return 0, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case uint64:
+		return resp, nil
+	default:
+		return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("KeyLen(): Unexpected response element: %v", resp), nil)
+	}
+}

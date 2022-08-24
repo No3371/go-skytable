@@ -136,9 +136,9 @@ resp, err := c.BuildAndExecQuery(p)
 - [ ] LSET
 - [ ] LSKEYS
 
-- [ ] DBSIZE
+- [X] DBSIZE
 - [ ] FLUSHDB
-- [ ] KEYLEN
+- [X] KEYLEN
 - [X] WHEREAMI
 
 - [X] MKSNAP

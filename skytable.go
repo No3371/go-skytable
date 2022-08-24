@@ -72,6 +72,11 @@ type Skytable interface {
 
 	MKSnap (ctx context.Context, name string) error // https://docs.skytable.io/actions/mksnap
 	WhereAmI (ctx context.Context) (string, error) // https://docs.skytable.io/actions/whereami
+	// https://docs.skytable.io/actions/dbsize
+	//
+	// If entity is "", check the current table
+	DBSize (ctx context.Context, entity string) (uint64, error)
+	KeyLen (ctx context.Context, key string) (uint64, error) // https://docs.skytable.io/actions/keylen
 }
 
 type SkytablePool interface {

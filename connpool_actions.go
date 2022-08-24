@@ -375,3 +375,25 @@ func (c *ConnPool) WhereAmI (ctx context.Context) (string, error) {
 
 	return conn.WhereAmI(ctx)
 }
+
+// https://docs.skytable.io/actions/dbsize
+func (c *ConnPool) DBSize (ctx context.Context, entity string) (uint64, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return 0, fmt.Errorf("*ConnPool.DBSize(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.DBSize(ctx, entity)
+}
+
+// https://docs.skytable.io/actions/dbsize
+func (c *ConnPool) KeyLen (ctx context.Context, key string) (uint64, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return 0, fmt.Errorf("*ConnPool.KeyLen(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.KeyLen(ctx, key)
+}

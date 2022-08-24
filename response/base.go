@@ -21,8 +21,8 @@ type ResponseEntry struct {
 	Value    any
 
 	// Contains error when these happen:
-	// - The response is not expected (according to implemented protocol). (ValidateProtocol method))
-	// - The response is an error string (The response would be RespErrStr, the actual error string is cached to the err)
+	//   - The response is not expected (according to implemented protocol). (ValidateProtocol method))
+	//   - The response is an error string (The response would be RespErrStr, the actual error string is cached to the err)
 	Err      error
 }
 

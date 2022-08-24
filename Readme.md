@@ -139,9 +139,9 @@ resp, err := c.BuildAndExecQuery(p)
 - [ ] DBSIZE
 - [ ] FLUSHDB
 - [ ] KEYLEN
-- [ ] WHEREAMI
+- [X] WHEREAMI
 
-- [ ] MKSNAP
+- [X] MKSNAP
 
 - [X] SYS INFO VERSION
 - [X] SYS INFO PROTOCOL

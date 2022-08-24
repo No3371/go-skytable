@@ -36,8 +36,8 @@ func (q InspectTable) AppendToPacket(builder *strings.Builder) error {
 		return errors.New("use explicit full path to the table to inspect it (keyspace:table)")
 	}
 
-	fmt.Fprintf(builder, "~3\n7\nINSPECT\n5\nTABLE\n%d\n%s\n", len(q.Path), q.Path)
-	return nil
+	_, err := fmt.Fprintf(builder, "~3\n7\nINSPECT\n5\nTABLE\n%d\n%s\n", len(q.Path), q.Path)
+	return err
 }
 
 func (q InspectTable) ValidateProtocol(response interface{}) error {

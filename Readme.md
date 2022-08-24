@@ -81,73 +81,30 @@ resp, err := c.BuildAndExecQuery(p)
 
 ### Mechanics
 
-- [ ] TLS
-- [X] DDL (Keyspaces/Tables)
-- [X] Auto-Reconnection
+⬜ TLS
+✅ DDL (Keyspaces/Tables)
+✅ Auto-Reconnection
 
 ### DataTypes
 
-- [X] ResponseCode
-- [X] Integer
-- [X] SignedInteger
-- [X] String
-- [X] BinaryString
-- [X] Float
-- [ ] SmallInteger
-- [ ] SignedSmallInteger
-- [ ] Json
-
-- [X] TypedArray
-- [ ] Array
-- [X] FlatArray
-- [X] AnyArray (Writing. Reading will not be implemented because it's query specific.)
-- [X] TypedNonNullArray
+| ✅ Implemented | ⬜ NotImplemented | 🟪 WaitingForSkyhash  |   |    |
+| --- | --- | --- | --- | --- |
+| --- | --- | --- | --- | --- |
+| ✅ ResponseCode | ✅ Integer | ✅ SignedInteger | ✅ String | ✅ BinaryString |
+| ✅ Float | ⬜ SmallInteger | ⬜ SignedSmallInteger | 🟪 Json |  |
+| ⬜ Array | ✅ FlatArray | ✅ AnyArray | ✅ TypedArray | ✅ TypedNonNullArray |
 
 ### Actions
 
-- [X] AUTH LOGIN
-- [ ] AUTH CLAIM
-- [ ] AUTH LOGOUT
-- [ ] AUTH ADDUSER
-- [ ] AUTH DELUSER
-- [ ] AUTH RESTORE
-- [ ] AUTH LISTUSER
-- [ ] AUTH WHOAMI
-
-- [X] (RAW QUERY)
-
-- [X] GET
-- [X] SET
-- [X] UPDATE
-- [X] MGET
-- [X] MSET
-- [X] DEL
-- [X] EXISTS
-- [X] HEYA
-- [X] USET
-- [X] POP
-- [ ] MPOP
-- [ ] MUPDATE
-- [ ] SDEL
-- [ ] SSET
-- [ ] LGET
-- [ ] LMOD
-- [ ] LGET
-- [ ] LSET
-- [ ] LSKEYS
-
-- [X] DBSIZE
-- [X] FLUSHDB
-- [X] KEYLEN
-- [X] WHEREAMI
-
-- [X] MKSNAP
-
-- [X] SYS INFO VERSION
-- [X] SYS INFO PROTOCOL
-- [X] SYS INFO PROTOVER
-- [X] SYS METRIC HEALTH
-- [X] SYS METRIC STORAGE
+| ✅ Implemented | ⬜ NotImplemented | 🟪 Partial  |   |    |
+| --- | --- | --- | --- | --- |
+| --- | --- | --- | --- | --- |
+| ✅ GET | ✅ SET | ✅ UPDATE | ✅ MGET | ✅ MSET |
+| ✅ DEL | ✅ EXISTS | ✅ HEYA | ✅ USET | ✅ POP |
+| ⬜ MPOP | ⬜ MUPDATE | ⬜ SDEL | ⬜ SSET | ⬜ LGET |
+| ⬜ LMOD | ⬜ LGET | ⬜ LSET | ⬜ LSKEYS | |
+| ✅ DBSIZE | ✅ FLUSHDB | ✅ KEYLEN | ✅ WHEREAMI | ✅ MKSNAP |
+| ✅ SYS | 🟪 AUTH | | | |
 
 ## SkytableX
 

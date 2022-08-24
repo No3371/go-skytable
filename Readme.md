@@ -137,7 +137,7 @@ resp, err := c.BuildAndExecQuery(p)
 - [ ] LSKEYS
 
 - [X] DBSIZE
-- [ ] FLUSHDB
+- [X] FLUSHDB
 - [X] KEYLEN
 - [X] WHEREAMI
 

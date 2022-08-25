@@ -128,7 +128,22 @@ func (c *Conn) SDel(ctx context.Context, keys []string) (err error) {
 		return rp.resps[0].Err
 	}
 
-	return nil
+	switch resp := rp.resps[0].Value.(type) {
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespOkay:
+			return nil
+		case protocol.RespNil:
+			return protocol.ErrCodeNil
+		case protocol.RespServerError:
+			return protocol.ErrCodeServerError
+		default:
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("SDel(): Unexpected response code: %s", resp), nil)
+
+		}
+	default:
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("SDel(): Unexpected response element: %v", resp), nil)
+	}
 }
 
 // https://docs.skytable.io/actions/get
@@ -196,7 +211,16 @@ func (c *Conn) MGet(ctx context.Context, keys []string) (*protocol.TypedArray, e
 		return nil, err
 	}
 
-	return rp.resps[0].Value.(*protocol.TypedArray), nil
+	if rp.resps[0].Err != nil {
+		return nil, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case *protocol.TypedArray:
+		return resp, nil
+	default:
+		return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("MGet(): Unexpected response element: %v", resp), nil)
+	}
 }
 
 // https://docs.skytable.io/actions/mset
@@ -213,7 +237,23 @@ func (c *Conn) MSetB(ctx context.Context, keys []string, values []any) (set uint
 		return 0, err
 	}
 
-	return rp.resps[0].Value.(uint64), nil
+	if rp.resps[0].Err != nil {
+		return 0, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case uint64:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespServerError:
+			return 0, protocol.ErrCodeServerError
+		default:
+			return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("MSetB(): Unexpected response code: %s", resp), nil)
+		}
+	default:
+		return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("MSetB(): Unexpected response element: %v", resp), nil)
+	}
 }
 
 // https://docs.skytable.io/actions/mset
@@ -232,7 +272,23 @@ func (c *Conn) MSet(ctx context.Context, entries []action.KVPair) (set uint64, e
 		return 0, err
 	}
 
-	return rp.resps[0].Value.(uint64), nil
+	if rp.resps[0].Err != nil {
+		return 0, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case uint64:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespServerError:
+			return 0, protocol.ErrCodeServerError
+		default:
+			return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("MSet(): Unexpected response code: %s", resp), nil)
+		}
+	default:
+		return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("MSet(): Unexpected response element: %v", resp), nil)
+	}
 }
 
 // https://docs.skytable.io/actions/set
@@ -247,6 +303,10 @@ func (c *Conn) Set(ctx context.Context, key string, value any) error {
 	rp, err := c.BuildAndExecQuery(p)
 	if err != nil {
 		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
 	}
 
 	switch resp := rp.resps[0].Value.(type) {
@@ -279,6 +339,10 @@ func (c *Conn) Update(ctx context.Context, key string, value any) error {
 	rp, err := c.BuildAndExecQuery(p)
 	if err != nil {
 		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
 	}
 
 	switch resp := rp.resps[0].Value.(type) {
@@ -819,6 +883,13 @@ func (c *Conn) KeyLen (ctx context.Context, key string) (uint64, error) {
 	switch resp := rp.resps[0].Value.(type) {
 	case uint64:
 		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespNil:
+			return 0, protocol.ErrCodeNil
+		default:
+			return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("KeyLen(): Unexpected response code: %v", resp), nil)
+		}
 	default:
 		return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("KeyLen(): Unexpected response element: %v", resp), nil)
 	}

@@ -28,9 +28,9 @@ func (q KeyLen) ValidateProtocol(response interface{}) error {
 	case protocol.ResponseCode:
 		switch response {
 		case protocol.ErrCodeNil:
-			return protocol.ErrCodeNil
+			return nil
 		case protocol.ErrCodeServerError:
-			return protocol.ErrCodeServerError
+			return nil
 		default:
 			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("KeyLen: Unexpected response code: %v", response), nil)
 		}

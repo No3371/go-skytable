@@ -40,9 +40,9 @@ func (q SDel) ValidateProtocol(response interface{}) error {
 		case protocol.RespOkay:
 			return nil
 		case protocol.RespNil:
-			return protocol.ErrCodeNil
+			return nil
 		case protocol.RespServerError:
-			return protocol.ErrCodeServerError
+			return nil
 		default:
 			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("SDEL: Unexpected response code: %v", resp), nil)
 		}

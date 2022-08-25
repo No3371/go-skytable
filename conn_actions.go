@@ -695,8 +695,12 @@ func (c *Conn) WhereAmI (ctx context.Context) (string, error) {
 	}
 
 	switch resp := rp.resps[0].Value.(type) {
-	case string:
-		return resp, nil
+	case *protocol.TypedArray:
+		if len(resp.Elements) == 1 {
+			return resp.Elements[0].(string), nil
+		} else {
+			return fmt.Sprintf("%s:%s", resp.Elements[0].(string), resp.Elements[1].(string)), nil
+		}
 	case protocol.ResponseCode:
 		switch resp {
 		case protocol.RespServerError:

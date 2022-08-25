@@ -118,3 +118,62 @@ func TestConn_InspectTable(t *testing.T) {
 		})
 	}
 }
+
+func TestConn_WhereAmI(t *testing.T) {
+	c, err := NewConnNoAuth()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name    string
+		target  string
+		wantErr bool
+	}{
+		{"default", "default", false},
+		{"default:default", "default:default", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := c.Use(context.Background(), tt.target)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			got, err := c.WhereAmI(context.Background())
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Conn.WhereAmI() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if got != tt.target {
+				t.Errorf("Conn.WhereAmI() = %v, want %v", got, tt.target)
+			}
+		})
+	}
+}
+
+func TestConn_DBSize(t *testing.T) {
+	c, err := NewConnNoAuth()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		entity     string
+		wantErr  bool
+	}{
+		{ "default", false },
+		{ "default:default", false },
+	}
+	for _, tt := range tests {
+		t.Run(tt.entity, func(t *testing.T) {
+			gotSize, err := c.DBSize(context.Background(), tt.entity)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Conn.DBSize() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			t.Log(gotSize)
+		})
+	}
+}

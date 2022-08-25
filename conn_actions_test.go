@@ -160,11 +160,11 @@ func TestConn_DBSize(t *testing.T) {
 	}
 
 	tests := []struct {
-		entity     string
-		wantErr  bool
+		entity  string
+		wantErr bool
 	}{
-		{ "default", false },
-		{ "default:default", false },
+		{"default", false},
+		{"default:default", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.entity, func(t *testing.T) {
@@ -175,5 +175,32 @@ func TestConn_DBSize(t *testing.T) {
 			}
 			t.Log(gotSize)
 		})
+	}
+}
+
+func TestConn_SDel(t *testing.T) {
+	c, err := NewConnNoAuth()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	set, err := c.MSetA(context.Background(), []action.KVPair {
+		{ K: "test_sdel_key1_", V: 1 },
+		{ K: "test_sdel_key2_", V: 2 },
+		{ K: "test_sdel_key3_", V: 3 },
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if set != 3 {
+		t.Fatalf("set count mismatch, expecting 3 but got %d", set)
+	}
+
+	err = c.SDel(context.Background(), []string { "test_sdel_key1_", "test_sdel_key2_", "test_sdel_key3_" } )
+
+	if err != nil {
+		t.Fatal(err)
 	}
 }

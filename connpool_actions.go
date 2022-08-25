@@ -56,6 +56,17 @@ func (c *ConnPool) Del(ctx context.Context, keys []string) (deleted uint64, err 
 	return conn.Del(ctx, keys)
 }
 
+// https://docs.skytable.io/actions/sdel
+func (c *ConnPool) SDel(ctx context.Context, keys []string) (err error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPool.SDel(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.SDel(ctx, keys)
+}
+
 // https://docs.skytable.io/actions/get
 func (c *ConnPool) Get(ctx context.Context, key string) (response.ResponseEntry, error) {
 	conn, err := c.popConn(false)

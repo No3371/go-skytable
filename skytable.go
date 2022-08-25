@@ -25,6 +25,7 @@ type Skytable interface {
 
 	Exists(ctx context.Context, keys []string) (existing uint64, err error) // https://docs.skytable.io/actions/exists
 	Del(ctx context.Context, keys []string) (deleted uint64, err error)     // https://docs.skytable.io/actions/del
+	SDel(ctx context.Context, keys []string) error // https://docs.skytable.io/actions/sdel
 
 	Get(ctx context.Context, key string) (response.ResponseEntry, error) // https://docs.skytable.io/actions/get
 	GetString(ctx context.Context, key string) (string, error)           // a strict version of [Get] that only success if the value is stored as String in Skytable.

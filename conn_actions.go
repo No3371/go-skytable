@@ -89,6 +89,7 @@ func (c *Conn) Exists(ctx context.Context, keys []string) (existing uint64, err 
 	return rp.resps[0].Value.(uint64), nil
 }
 
+// https://docs.skytable.io/actions/del
 func (c *Conn) Del(ctx context.Context, keys []string) (deleted uint64, err error) {
 	p := &QueryPacket{
 		ctx: ctx,
@@ -102,7 +103,32 @@ func (c *Conn) Del(ctx context.Context, keys []string) (deleted uint64, err erro
 		return 0, err
 	}
 
+	if rp.resps[0].Err != nil {
+		return 0, rp.resps[0].Err
+	}
+
 	return rp.resps[0].Value.(uint64), nil
+}
+
+// https://docs.skytable.io/actions/sdel
+func (c *Conn) SDel(ctx context.Context, keys []string) (err error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.SDel { Keys: keys },
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
+	}
+
+	return nil
 }
 
 // https://docs.skytable.io/actions/get

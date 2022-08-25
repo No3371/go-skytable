@@ -184,7 +184,7 @@ func TestConn_SDel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	set, err := c.MSetA(context.Background(), []action.KVPair{
+	set, err := c.MSet(context.Background(), []action.KVPair{
 		{K: "test_sdel_key1_", V: 1},
 		{K: "test_sdel_key2_", V: 2},
 		{K: "test_sdel_key3_", V: 3},
@@ -211,7 +211,7 @@ func TestConn_SDel_Nil(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	set, err := c.MSetA(context.Background(), []action.KVPair{
+	set, err := c.MSet(context.Background(), []action.KVPair{
 		{K: "test_sdel_key1_", V: 1},
 		{K: "test_sdel_key2_", V: 2},
 	})

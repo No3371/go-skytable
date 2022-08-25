@@ -112,25 +112,25 @@ func (c *ConnPool) MGet(ctx context.Context, keys []string) (*protocol.TypedArra
 }
 
 // https://docs.skytable.io/actions/mset
-func (c *ConnPool) MSet(ctx context.Context, keys []string, values []any) (set uint64, err error) {
+func (c *ConnPool) MSetB(ctx context.Context, keys []string, values []any) (set uint64, err error) {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return 0, fmt.Errorf("*ConnPool.MGet(): %w", err)
 	}
 	defer c.pushConn(conn)
 
-	return conn.MSet(ctx, keys, values)
+	return conn.MSetB(ctx, keys, values)
 }
 
 // https://docs.skytable.io/actions/mset
-func (c *ConnPool) MSetA(ctx context.Context, entries []action.KVPair) (set uint64, err error) {
+func (c *ConnPool) MSet(ctx context.Context, entries []action.KVPair) (set uint64, err error) {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return 0, fmt.Errorf("*ConnPool.MGet(): %w", err)
 	}
 	defer c.pushConn(conn)
 
-	return conn.MSetA(ctx, entries)
+	return conn.MSet(ctx, entries)
 }
 
 // https://docs.skytable.io/actions/set

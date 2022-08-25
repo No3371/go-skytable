@@ -200,7 +200,7 @@ func (c *Conn) MGet(ctx context.Context, keys []string) (*protocol.TypedArray, e
 }
 
 // MSet returns the actual number of the keys set.
-func (c *Conn) MSet(ctx context.Context, keys []string, values []any) (set uint64, err error) {
+func (c *Conn) MSetB(ctx context.Context, keys []string, values []any) (set uint64, err error) {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
@@ -218,7 +218,7 @@ func (c *Conn) MSet(ctx context.Context, keys []string, values []any) (set uint6
 
 // MSet returns the actual number of the keys set.
 // This is just an alternative MSet with different signature.
-func (c *Conn) MSetA(ctx context.Context, entries []action.KVPair) (set uint64, err error) {
+func (c *Conn) MSet(ctx context.Context, entries []action.KVPair) (set uint64, err error) {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{

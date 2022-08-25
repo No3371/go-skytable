@@ -32,8 +32,8 @@ type Skytable interface {
 	GetBytes(ctx context.Context, key string) ([]byte, error)            // a strict version of [Get] that only success if the value is stored as BinaryString in Skytable.
 
 	MGet(ctx context.Context, keys []string) (*protocol.TypedArray, error)         // https://docs.skytable.io/actions/mset
-	MSet(ctx context.Context, keys []string, values []any) (set uint64, err error) // https://docs.skytable.io/actions/mset
-	MSetA(ctx context.Context, entries []action.KVPair) (set uint64, err error)    // https://docs.skytable.io/actions/mset
+	MSetB(ctx context.Context, keys []string, values []any) (set uint64, err error) // https://docs.skytable.io/actions/mset
+	MSet(ctx context.Context, entries []action.KVPair) (set uint64, err error)    // https://docs.skytable.io/actions/mset
 
 	Set(ctx context.Context, key string, value any) error    // https://docs.skytable.io/actions/set
 	Update(ctx context.Context, key string, value any) error // https://docs.skytable.io/actions/update

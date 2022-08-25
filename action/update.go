@@ -8,15 +8,8 @@ import (
 )
 
 type Update struct {
-	key   string
-	value interface{}
-}
-
-func NewUpdate(key string, value interface{}) *Update {
-	return &Update{
-		key:   key,
-		value: value,
-	}
+	Key   string
+	Value any
 }
 
 func (q Update) AppendToPacket(builder *strings.Builder) error {
@@ -25,7 +18,7 @@ func (q Update) AppendToPacket(builder *strings.Builder) error {
 		return err
 	}
 
-	err = AppendElements(builder, false, "UPDATE", q.key, q.value)
+	err = AppendElements(builder, false, "UPDATE", q.Key, q.Value)
 	if err != nil {
 		return err
 	}
@@ -33,7 +26,7 @@ func (q Update) AppendToPacket(builder *strings.Builder) error {
 	return nil
 }
 
-func (q Update) ValidateProtocol(response interface{}) error {
+func (q Update) ValidateProtocol(response any) error {
 	switch response := response.(type) {
 	case protocol.ResponseCode:
 		switch response {

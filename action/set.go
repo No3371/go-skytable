@@ -8,15 +8,8 @@ import (
 )
 
 type Set struct {
-	key   string
-	value interface{}
-}
-
-func NewSet(key string, value interface{}) *Set {
-	return &Set{
-		key:   key,
-		value: value,
-	}
+	Key   string
+	Value any
 }
 
 func (q Set) AppendToPacket(builder *strings.Builder) error {
@@ -25,14 +18,14 @@ func (q Set) AppendToPacket(builder *strings.Builder) error {
 		return err
 	}
 
-	err = AppendElements(builder, false, "SET", q.key, q.value)
+	err = AppendElements(builder, false, "SET", q.Key, q.Value)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (q Set) ValidateProtocol(response interface{}) error {
+func (q Set) ValidateProtocol(response any) error {
 	switch response := response.(type) {
 	case protocol.ResponseCode:
 		switch response {

@@ -270,9 +270,9 @@ func TestDelSetGetSinglePacket(t *testing.T) {
 	v := "り8しれ 工さ小"
 
 	p := skytable.NewQueryPacket([]skytable.Action{
-		action.NewDel([]string{k}),
-		action.NewSet(k, v),
-		action.NewGet(k),
+		action.Del { Keys: []string{k} },
+		action.Set { Key: k, Value: v },
+		action.Get { Key: k },
 	})
 
 	rp, err := c.BuildAndExecQuery(p)
@@ -341,7 +341,7 @@ func TestConnLocalSetMGet(t *testing.T) {
 
 		p := skytable.NewQueryPacket(
 			[]skytable.Action{
-				action.NewMGet(keys[:seq]),
+				action.MGet{ Keys: keys[:seq] },
 			})
 
 		sTime = time.Now()

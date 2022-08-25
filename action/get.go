@@ -8,13 +8,7 @@ import (
 )
 
 type Get struct {
-	key string
-}
-
-func NewGet(key string) *Get {
-	return &Get{
-		key: key,
-	}
+	Key string
 }
 
 func (q Get) AppendToPacket(builder *strings.Builder) error {
@@ -23,7 +17,7 @@ func (q Get) AppendToPacket(builder *strings.Builder) error {
 		return err
 	}
 
-	err = AppendElements(builder, false, "GET", q.key)
+	err = AppendElements(builder, false, "GET", q.Key)
 	if err != nil {
 		return err
 	}

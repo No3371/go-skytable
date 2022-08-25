@@ -18,7 +18,7 @@ func (c *Conn) Heya(ctx context.Context, echo string) error {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.NewHeya(echo),
+			action.Heya{ Echo: echo },
 		},
 	}
 
@@ -44,7 +44,7 @@ func (c *Conn) AuthLogin(ctx context.Context, authProvider AuthProvider) error {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.NewLogin(username, token),
+			action.Login{ Username: username, Token: token },
 		},
 	}
 
@@ -77,7 +77,7 @@ func (c *Conn) Exists(ctx context.Context, keys []string) (existing uint64, err 
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.NewExists(keys),
+			action.Exists{ Keys: keys },
 		},
 	}
 
@@ -93,7 +93,7 @@ func (c *Conn) Del(ctx context.Context, keys []string) (deleted uint64, err erro
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.NewDel(keys),
+			action.Del { Keys: keys },
 		},
 	}
 
@@ -110,7 +110,7 @@ func (c *Conn) Get(ctx context.Context, key string) (response.ResponseEntry, err
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.NewGet(key),
+			action.Get { Key: key },
 		},
 	}
 
@@ -161,7 +161,7 @@ func (c *Conn) MGet(ctx context.Context, keys []string) (*protocol.TypedArray, e
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.NewMGet(keys),
+			action.MGet{ Keys: keys },
 		},
 	}
 
@@ -178,7 +178,7 @@ func (c *Conn) MSet(ctx context.Context, keys []string, values []any) (set uint6
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.NewMSetB(keys, values),
+			action.MSetB{ Keys: keys, Values: values },
 		},
 	}
 
@@ -196,7 +196,7 @@ func (c *Conn) MSetA(ctx context.Context, entries []action.KVPair) (set uint64, 
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.NewMSetA(entries),
+			action.MSetA{ Entries: entries },
 		},
 	}
 
@@ -213,7 +213,7 @@ func (c *Conn) Set(ctx context.Context, key string, value any) error {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.NewSet(key, value),
+			action.Set{ Key: key, Value: value },
 		},
 	}
 
@@ -245,7 +245,7 @@ func (c *Conn) Update(ctx context.Context, key string, value any) error {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.NewUpdate(key, value),
+			action.Update{ Key: key, Value: value },
 		},
 	}
 

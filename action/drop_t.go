@@ -12,12 +12,6 @@ type DropTable struct {
 	Path string
 }
 
-func NewDropTable(path string) *DropTable {
-	return &DropTable{
-		Path: path,
-	}
-}
-
 func FormatSingleDropTablePacket (path string) string {
 	return fmt.Sprintf("*1\n~3\n4\nDROP\n5\nTABLE\n%d\n%s\n", len(path), path)
 }

@@ -8,17 +8,11 @@ import (
 )
 
 type Heya struct {
-	echo string
-}
-
-func NewHeya(echo string) *Heya {
-	return &Heya{
-		echo: echo,
-	}
+	Echo string
 }
 
 func (q Heya) AppendToPacket(builder *strings.Builder) (err error) {
-	if q.echo == "" {
+	if q.Echo == "" {
 		err = AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 1, builder)
 	} else {
 		err = AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, 2, builder)
@@ -32,8 +26,8 @@ func (q Heya) AppendToPacket(builder *strings.Builder) (err error) {
 		return err
 	}
 
-	if q.echo != "" {
-		err = AppendElement(q.echo, builder, false)
+	if q.Echo != "" {
+		err = AppendElement(q.Echo, builder, false)
 		if err != nil {
 			return err
 		}
@@ -44,7 +38,7 @@ func (q Heya) AppendToPacket(builder *strings.Builder) (err error) {
 func (q Heya) ValidateProtocol(response interface{}) error {
 	switch echo := response.(type) {
 	case string:
-		if (q.echo == "" && echo != "HEY!") || (q.echo != "" && echo != q.echo) {
+		if (q.Echo == "" && echo != "HEY!") || (q.Echo != "" && echo != q.Echo) {
 			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("HEYA: unexpected echo: %s", response), nil)
 		} else {
 			return nil

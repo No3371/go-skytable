@@ -8,17 +8,11 @@ import (
 )
 
 type Exists struct {
-	keys []string
-}
-
-func NewExists(keys []string) *Exists {
-	return &Exists{
-		keys: keys,
-	}
+	Keys []string
 }
 
 func (q Exists) AppendToPacket(builder *strings.Builder) error {
-	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, len(q.keys)+1, builder)
+	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, len(q.Keys)+1, builder)
 	if err != nil {
 		return err
 	}
@@ -28,7 +22,7 @@ func (q Exists) AppendToPacket(builder *strings.Builder) error {
 		return err
 	}
 
-	for _, k := range q.keys {
+	for _, k := range q.Keys {
 		err = AppendElement(k, builder, false)
 		if err != nil {
 			return err

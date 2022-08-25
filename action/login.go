@@ -8,15 +8,8 @@ import (
 )
 
 type Login struct {
-	username string
-	token    string
-}
-
-func NewLogin(username string, token string) *Login {
-	return &Login{
-		username: username,
-		token:    token,
-	}
+	Username string
+	Token    string
 }
 
 func (q Login) AppendToPacket(builder *strings.Builder) error {
@@ -25,7 +18,7 @@ func (q Login) AppendToPacket(builder *strings.Builder) error {
 		return err
 	}
 
-	err = AppendElements(builder, false, "AUTH", "LOGIN", q.username, q.token)
+	err = AppendElements(builder, false, "AUTH", "LOGIN", q.Username, q.Token)
 	if err != nil {
 		return err
 	}

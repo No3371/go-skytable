@@ -184,10 +184,10 @@ func TestConn_SDel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	set, err := c.MSetA(context.Background(), []action.KVPair {
-		{ K: "test_sdel_key1_", V: 1 },
-		{ K: "test_sdel_key2_", V: 2 },
-		{ K: "test_sdel_key3_", V: 3 },
+	set, err := c.MSetA(context.Background(), []action.KVPair{
+		{K: "test_sdel_key1_", V: 1},
+		{K: "test_sdel_key2_", V: 2},
+		{K: "test_sdel_key3_", V: 3},
 	})
 
 	if err != nil {
@@ -198,9 +198,46 @@ func TestConn_SDel(t *testing.T) {
 		t.Fatalf("set count mismatch, expecting 3 but got %d", set)
 	}
 
-	err = c.SDel(context.Background(), []string { "test_sdel_key1_", "test_sdel_key2_", "test_sdel_key3_" } )
+	err = c.SDel(context.Background(), []string{"test_sdel_key1_", "test_sdel_key2_", "test_sdel_key3_"})
 
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestConn_SDel_Nil(t *testing.T) {
+	c, err := NewConnNoAuth()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	set, err := c.MSetA(context.Background(), []action.KVPair{
+		{K: "test_sdel_key1_", V: 1},
+		{K: "test_sdel_key2_", V: 2},
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() {
+		err = c.SDel(context.Background(), []string{"test_sdel_key1_", "test_sdel_key2_"})
+		if err != nil {
+			t.Fatalf("failed to clean up: %v", err)
+		}
+	}()
+
+	if set != 2 {
+		t.Fatalf("set count mismatch, expecting 3 but got %d", set)
+	}
+
+	err = c.SDel(context.Background(), []string{"test_sdel_key1_", "test_sdel_key2_", "test_sdel_key3_"})
+
+	if err == nil {
+		t.Fatal("expecting err")
+	}
+
+	if err != protocol.ErrCodeNil {
+		t.Fatalf("expecting nil err but got %v", err)
 	}
 }

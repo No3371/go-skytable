@@ -299,6 +299,39 @@ func (c *Conn) Update(ctx context.Context, key string, value any) error {
 	}
 }
 
+// https://docs.skytable.io/actions/mupdate
+func (c *Conn) MUpdate(ctx context.Context, entries []action.KVPair) (updated uint64, err error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.MUpdate{ Entries: entries },
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return 0, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return 0, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case uint64:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespServerError:
+			return 0, protocol.ErrCodeServerError
+		default:
+			return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("MUpdate(): Unexpected response code: %s", resp), nil)
+		}
+	default:
+		return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("MUpdate(): Unexpected response element: %v", resp), nil)
+	}
+}
+
 // https://docs.skytable.io/actions/uset
 func (c *Conn) USet(ctx context.Context, entries ...action.KVPair) (set uint64, err error) {
 	p := &QueryPacket{

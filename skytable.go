@@ -37,6 +37,7 @@ type Skytable interface {
 
 	Set(ctx context.Context, key string, value any) error    // https://docs.skytable.io/actions/set
 	Update(ctx context.Context, key string, value any) error // https://docs.skytable.io/actions/update
+	MUpdate(ctx context.Context, entries []action.KVPair) (updated uint64, err error) // https://docs.skytable.io/actions/mupdate
 
 	USet(ctx context.Context, entries ...action.KVPair) (set uint64, err error)
 

@@ -155,6 +155,17 @@ func (c *ConnPool) Update(ctx context.Context, key string, value any) error {
 	return conn.Update(ctx, key, value)
 }
 
+// https://docs.skytable.io/actions/update
+func (c *ConnPool) MUpdate(ctx context.Context, entries []action.KVPair) (updated uint64, err error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return 0, fmt.Errorf("*ConnPool.MUpdate(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.MUpdate(ctx, entries)
+}
+
 // https://docs.skytable.io/actions/uset
 func (c *ConnPool) USet(ctx context.Context, entries ...action.KVPair) (set uint64, err error) {
 	conn, err := c.popConn(false)

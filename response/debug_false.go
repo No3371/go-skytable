@@ -1,5 +1,4 @@
-//go:build !debug
-// +build !debug
+// +build !st_debug
 
 package response
 

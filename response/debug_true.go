@@ -1,4 +1,4 @@
-// +build debug
+// +build st_debug
 
 package response
 

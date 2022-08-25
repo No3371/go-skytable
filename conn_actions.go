@@ -182,7 +182,7 @@ func (c *Conn) GetBytes(ctx context.Context, key string) ([]byte, error) {
 	}
 }
 
-// Get the value of 'n' keys from the current table, if they exist
+// https://docs.skytable.io/actions/mget
 func (c *Conn) MGet(ctx context.Context, keys []string) (*protocol.TypedArray, error) {
 	p := &QueryPacket{
 		ctx: ctx,
@@ -199,7 +199,7 @@ func (c *Conn) MGet(ctx context.Context, keys []string) (*protocol.TypedArray, e
 	return rp.resps[0].Value.(*protocol.TypedArray), nil
 }
 
-// MSet returns the actual number of the keys set.
+// https://docs.skytable.io/actions/mset
 func (c *Conn) MSetB(ctx context.Context, keys []string, values []any) (set uint64, err error) {
 	p := &QueryPacket{
 		ctx: ctx,
@@ -216,7 +216,8 @@ func (c *Conn) MSetB(ctx context.Context, keys []string, values []any) (set uint
 	return rp.resps[0].Value.(uint64), nil
 }
 
-// MSet returns the actual number of the keys set.
+// https://docs.skytable.io/actions/mset
+//
 // This is just an alternative MSet with different signature.
 func (c *Conn) MSet(ctx context.Context, entries []action.KVPair) (set uint64, err error) {
 	p := &QueryPacket{
@@ -234,7 +235,7 @@ func (c *Conn) MSet(ctx context.Context, entries []action.KVPair) (set uint64, e
 	return rp.resps[0].Value.(uint64), nil
 }
 
-// Set the value of a key in the current table, if it doesn't already exist
+// https://docs.skytable.io/actions/set
 func (c *Conn) Set(ctx context.Context, key string, value any) error {
 	p := &QueryPacket{
 		ctx: ctx,
@@ -266,7 +267,7 @@ func (c *Conn) Set(ctx context.Context, key string, value any) error {
 	}
 }
 
-// Update the value of an existing key in the current table
+// https://docs.skytable.io/actions/update
 func (c *Conn) Update(ctx context.Context, key string, value any) error {
 	p := &QueryPacket{
 		ctx: ctx,

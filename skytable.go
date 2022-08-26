@@ -30,18 +30,18 @@ type Skytable interface {
 	Get(ctx context.Context, key string) (response.ResponseEntry, error) // https://docs.skytable.io/actions/get
 	GetString(ctx context.Context, key string) (string, error)           // a strict version of [Get] that only success if the value is stored as String in Skytable.
 	GetBytes(ctx context.Context, key string) ([]byte, error)            // a strict version of [Get] that only success if the value is stored as BinaryString in Skytable.
-
 	MGet(ctx context.Context, keys []string) (*protocol.TypedArray, error)          // https://docs.skytable.io/actions/mget
-	MSetB(ctx context.Context, keys []string, values []any) (set uint64, err error) // https://docs.skytable.io/actions/mset
-	MSet(ctx context.Context, entries []action.KVPair) (set uint64, err error)      // https://docs.skytable.io/actions/mset
+	Pop(ctx context.Context, key string) (response.ResponseEntry, error)
 
 	Set(ctx context.Context, key string, value any) error                             // https://docs.skytable.io/actions/set
-	Update(ctx context.Context, key string, value any) error                          // https://docs.skytable.io/actions/update
-	MUpdate(ctx context.Context, entries []action.KVPair) (updated uint64, err error) // https://docs.skytable.io/actions/mupdate
-
+	MSetB(ctx context.Context, keys []string, values []any) (set uint64, err error) // https://docs.skytable.io/actions/mset
+	MSet(ctx context.Context, entries []action.KVPair) (set uint64, err error)      // https://docs.skytable.io/actions/mset
+	SSet(ctx context.Context, entries []action.KVPair) error                        // https://docs.skytable.io/actions/sset
 	USet(ctx context.Context, entries ...action.KVPair) (set uint64, err error)
 
-	Pop(ctx context.Context, key string) (response.ResponseEntry, error)
+	Update(ctx context.Context, key string, value any) error                          // https://docs.skytable.io/actions/update
+	MUpdate(ctx context.Context, entries []action.KVPair) (updated uint64, err error) // https://docs.skytable.io/actions/mupdate
+	SUpdate(ctx context.Context, entries []action.KVPair) error                        // https://docs.skytable.io/actions/supdate
 
 	Exec(ctx context.Context, packet *QueryPacket) ([]response.ResponseEntry, error)
 	ExecSingleActionPacketRaw(segments ...any) (response.ResponseEntry, error)

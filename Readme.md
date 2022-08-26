@@ -101,7 +101,7 @@ resp, err := c.BuildAndExecQuery(p)
 | --- | --- | --- | --- | --- |
 | ✅ GET | ✅ SET | ✅ UPDATE | ✅ MGET | ✅ MSET |
 | ✅ DEL | ✅ EXISTS | ✅ HEYA | ✅ USET | ✅ POP |
-| ⬜ MPOP | ✅ MUPDATE | ✅ SDEL | ⬜ SSET | ⬜ LGET |
+| ⬜ MPOP | ✅ MUPDATE | ✅ SDEL | ✅ SSET | ✅ SUPDATE |
 | ⬜ LMOD | ⬜ LGET | ⬜ LSET | ⬜ LSKEYS | |
 | ✅ DBSIZE | ✅ FLUSHDB | ✅ KEYLEN | ✅ WHEREAMI | ✅ MKSNAP |
 | ✅ SYS | 🟪 AUTH | | | |

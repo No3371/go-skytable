@@ -317,6 +317,41 @@ func (c *Conn) MSet(ctx context.Context, entries []action.KVPair) (set uint64, e
 	}
 }
 
+// https://docs.skytable.io/actions/sset
+func (c *Conn) SSet(ctx context.Context, entries []action.KVPair) (err error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.SSet{Entries: entries},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespOkay:
+			return nil
+		case protocol.RespOverwriteError:
+			return protocol.ErrCodeOverwriteError
+		case protocol.RespServerError:
+			return protocol.ErrCodeServerError
+		default:
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("SSet(): Unexpected response code: %s", resp), nil)
+		}
+	default:
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("SSet(): Unexpected response element: %v", resp), nil)
+	}
+}
+
 // https://docs.skytable.io/actions/set
 func (c *Conn) Set(ctx context.Context, key string, value any) error {
 	p := &QueryPacket{
@@ -419,6 +454,41 @@ func (c *Conn) MUpdate(ctx context.Context, entries []action.KVPair) (updated ui
 		}
 	default:
 		return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("MUpdate(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/supdate
+func (c *Conn) SUpdate(ctx context.Context, entries []action.KVPair) (err error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.SSet{Entries: entries},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespOkay:
+			return nil
+		case protocol.RespNil:
+			return protocol.ErrCodeNil
+		case protocol.RespServerError:
+			return protocol.ErrCodeServerError
+		default:
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("SUpdate(): Unexpected response code: %s", resp), nil)
+		}
+	default:
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("SUpdate(): Unexpected response element: %v", resp), nil)
 	}
 }
 

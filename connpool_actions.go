@@ -133,6 +133,17 @@ func (c *ConnPool) MSet(ctx context.Context, entries []action.KVPair) (set uint6
 	return conn.MSet(ctx, entries)
 }
 
+// https://docs.skytable.io/actions/sset
+func (c *ConnPool) SSet(ctx context.Context, entries []action.KVPair) (err error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPool.SGet(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.SSet(ctx, entries)
+}
+
 // https://docs.skytable.io/actions/set
 func (c *ConnPool) Set(ctx context.Context, key string, value any) error {
 	conn, err := c.popConn(false)
@@ -164,6 +175,17 @@ func (c *ConnPool) MUpdate(ctx context.Context, entries []action.KVPair) (update
 	defer c.pushConn(conn)
 
 	return conn.MUpdate(ctx, entries)
+}
+
+// https://docs.skytable.io/actions/supdate
+func (c *ConnPool) SUpdate(ctx context.Context, entries []action.KVPair) (err error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPool.SUpdate(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.SUpdate(ctx, entries)
 }
 
 // https://docs.skytable.io/actions/uset

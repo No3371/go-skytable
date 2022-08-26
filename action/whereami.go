@@ -7,6 +7,7 @@ import (
 	"github.com/No3371/go-skytable/protocol"
 )
 
+// https://docs.skytable.io/actions/whereami
 type WhereAmI struct {}
 
 func (q WhereAmI) AppendToPacket(builder *strings.Builder) (err error) {

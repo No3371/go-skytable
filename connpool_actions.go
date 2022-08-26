@@ -377,7 +377,9 @@ func (c *ConnPool) SysInfoProtoVer(ctx context.Context) (float32, error) {
 // }
 
 // https://docs.skytable.io/actions/mksnap
-func (c *ConnPool) MKSnap (ctx context.Context, name string) error {
+//
+// If name is "", it will only send "MKSNAP"
+func (c *ConnPool) MKSnap(ctx context.Context, name string) error {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return fmt.Errorf("*ConnPool.MKSnap(): %w", err)

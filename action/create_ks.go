@@ -8,12 +8,7 @@ import (
 	"github.com/No3371/go-skytable/protocol"
 )
 
-// Note:
-// KEYSPACE for Keyspaces
-// KEYSPACE:TABLE for tables
-
-
-
+// https://docs.skytable.io/ddl/#keyspaces
 type CreateKeyspace struct {
 	Path string
 }

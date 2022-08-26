@@ -782,7 +782,9 @@ func (c *Conn) SysInfoProtoVer(ctx context.Context) (float32, error) {
 // }
 
 // https://docs.skytable.io/actions/mksnap
-func (c *Conn) MKSnap (ctx context.Context, name string) error {
+//
+// If name is "", it will only send "MKSNAP"
+func (c *Conn) MKSnap(ctx context.Context, name string) error {
 	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action{action.MKSnap{Name: name}}))
 	if err != nil {
 		return err

@@ -8,6 +8,7 @@ import (
 	"github.com/No3371/go-skytable/protocol"
 )
 
+// https://docs.skytable.io/actions/keylen
 type KeyLen struct {
 	Key string
 }

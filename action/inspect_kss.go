@@ -7,7 +7,7 @@ import (
 	"github.com/No3371/go-skytable/protocol"
 )
 
-// Get a list of all keyspaces within the instance.
+// https://docs.skytable.io/ddl/#inspect
 type InspectKeyspaces struct {}
 
 

@@ -7,11 +7,18 @@ import (
 	"github.com/No3371/go-skytable/protocol"
 )
 
-// If Path is left empty, "INSPECT KEYSPACE" will be sent (inspect current keyspace)
+// https://docs.skytable.io/actions/mksnap
+//
+// If name is "", it will only send "MKSNAP"
 type MKSnap struct {
 	Name string
 }
 
+// https://docs.skytable.io/actions/mksnap
+//
+// If name is "", it will only send "MKSNAP"
+//
+// ⚠️ Only use this when sending packets contains this action only.
 func FormatSingleMKSnapPacket(name string) string {
 	if name == "" {
 		return "*1\n~1\n6\nMKSNAP\n"

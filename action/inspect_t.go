@@ -8,12 +8,16 @@ import (
 	"github.com/No3371/go-skytable/protocol"
 )
 
-// If Path is left empty, "INSPECT TABLE" will be sent (inspect current table)
+// https://docs.skytable.io/ddl/#tables-2
+//
+// If path is "", inspect the current table
 type InspectTable struct {
 	Path string
 }
 
-// If Path is left empty, "INSPECT TABLE" will be sent (inspect current table)
+// https://docs.skytable.io/ddl/#tables-2
+//
+// If path is "", inspect the current table
 //
 // ⚠️ Only use this when sending packets contains this action only.
 func FormatSingleInspectTablePacket(path string) string {

@@ -7,18 +7,11 @@ import (
 	"github.com/No3371/go-skytable/protocol"
 )
 
-// Note:
-// KEYSPACE for Keyspaces
-// KEYSPACE:TABLE for tables
-
+// https://docs.skytable.io/ddl/#use
+//
+// “USE KEYSPACE” and “USE TABLE” are unified into “USE”.
 type Use struct {
 	Path string
-}
-
-func NewUse(path string) *Use {
-	return &Use{
-		Path: path,
-	}
 }
 
 func FormatSingleUsePacket(path string) string {

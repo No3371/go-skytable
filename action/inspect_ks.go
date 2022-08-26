@@ -8,7 +8,9 @@ import (
 	"github.com/No3371/go-skytable/protocol"
 )
 
-// If Path is left empty, "INSPECT KEYSPACE" will be sent (inspect current keyspace)
+// https://docs.skytable.io/ddl/#keyspaces-2
+//
+// If the supplied name is "", inspect the current keyspace
 type InspectKeyspace struct {
 	Name string
 }

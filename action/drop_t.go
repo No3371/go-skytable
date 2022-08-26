@@ -8,6 +8,7 @@ import (
 	"github.com/No3371/go-skytable/protocol"
 )
 
+// https://docs.skytable.io/ddl/#tables-1
 type DropTable struct {
 	Path string
 }

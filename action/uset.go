@@ -7,6 +7,7 @@ import (
 	"github.com/No3371/go-skytable/protocol"
 )
 
+// https://docs.skytable.io/actions/uset
 type USet struct {
 	Entries []KVPair
 }

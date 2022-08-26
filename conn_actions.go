@@ -18,7 +18,7 @@ func (c *Conn) Heya(ctx context.Context, echo string) error {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.Heya{ Echo: echo },
+			action.Heya{Echo: echo},
 		},
 	}
 
@@ -44,7 +44,7 @@ func (c *Conn) AuthLogin(ctx context.Context, authProvider AuthProvider) error {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.Login{ Username: username, Token: token },
+			action.Login{Username: username, Token: token},
 		},
 	}
 
@@ -77,7 +77,7 @@ func (c *Conn) Exists(ctx context.Context, keys []string) (existing uint64, err 
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.Exists{ Keys: keys },
+			action.Exists{Keys: keys},
 		},
 	}
 
@@ -108,7 +108,7 @@ func (c *Conn) Del(ctx context.Context, keys []string) (deleted uint64, err erro
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.Del { Keys: keys },
+			action.Del{Keys: keys},
 		},
 	}
 
@@ -141,7 +141,7 @@ func (c *Conn) SDel(ctx context.Context, keys []string) (err error) {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.SDel { Keys: keys },
+			action.SDel{Keys: keys},
 		},
 	}
 
@@ -177,7 +177,7 @@ func (c *Conn) Get(ctx context.Context, key string) (response.ResponseEntry, err
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.Get { Key: key },
+			action.Get{Key: key},
 		},
 	}
 
@@ -228,7 +228,7 @@ func (c *Conn) MGet(ctx context.Context, keys []string) (*protocol.TypedArray, e
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.MGet{ Keys: keys },
+			action.MGet{Keys: keys},
 		},
 	}
 
@@ -254,7 +254,7 @@ func (c *Conn) MSetB(ctx context.Context, keys []string, values []any) (set uint
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.MSetB{ Keys: keys, Values: values },
+			action.MSetB{Keys: keys, Values: values},
 		},
 	}
 
@@ -289,7 +289,7 @@ func (c *Conn) MSet(ctx context.Context, entries []action.KVPair) (set uint64, e
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.MSetA{ Entries: entries },
+			action.MSetA{Entries: entries},
 		},
 	}
 
@@ -322,7 +322,7 @@ func (c *Conn) Set(ctx context.Context, key string, value any) error {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.Set{ Key: key, Value: value },
+			action.Set{Key: key, Value: value},
 		},
 	}
 
@@ -358,7 +358,7 @@ func (c *Conn) Update(ctx context.Context, key string, value any) error {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.Update{ Key: key, Value: value },
+			action.Update{Key: key, Value: value},
 		},
 	}
 
@@ -394,7 +394,7 @@ func (c *Conn) MUpdate(ctx context.Context, entries []action.KVPair) (updated ui
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.MUpdate{ Entries: entries },
+			action.MUpdate{Entries: entries},
 		},
 	}
 
@@ -717,10 +717,6 @@ func (c *Conn) DropTable(ctx context.Context, path string) error {
 	}
 }
 
-// func (c *Conn) InspectCurrentTable(ctx context.Context) (interface{}, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
-
 // https://docs.skytable.io/ddl/#tables-2
 //
 // If path is "", inspect the current table
@@ -836,7 +832,7 @@ func (c *Conn) MKSnap(ctx context.Context, name string) error {
 }
 
 // https://docs.skytable.io/actions/whereami
-func (c *Conn) WhereAmI (ctx context.Context) (string, error) {
+func (c *Conn) WhereAmI(ctx context.Context) (string, error) {
 	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action{action.WhereAmI{}}))
 	if err != nil {
 		return "", err
@@ -866,7 +862,7 @@ func (c *Conn) WhereAmI (ctx context.Context) (string, error) {
 }
 
 // https://docs.skytable.io/actions/dbsize
-func (c *Conn) DBSize (ctx context.Context, entity string) (size uint64, err error) {
+func (c *Conn) DBSize(ctx context.Context, entity string) (size uint64, err error) {
 	var rp *RawResponsePacket
 	if entity == "" {
 		rp, err = c.ExecRaw("*1\n~1\n6\nDBSIZE\n")
@@ -898,7 +894,7 @@ func (c *Conn) DBSize (ctx context.Context, entity string) (size uint64, err err
 }
 
 // https://docs.skytable.io/actions/keylen
-func (c *Conn) KeyLen (ctx context.Context, key string) (uint64, error) {
+func (c *Conn) KeyLen(ctx context.Context, key string) (uint64, error) {
 	rp, err := c.BuildAndExecQuery(NewQueryPacket([]Action{action.KeyLen{}}))
 	if err != nil {
 		return 0, err
@@ -924,7 +920,7 @@ func (c *Conn) KeyLen (ctx context.Context, key string) (uint64, error) {
 }
 
 // https://docs.skytable.io/actions/sys#metric
-func (c *Conn) SysMetricHealth (ctx context.Context) (bool, error) {
+func (c *Conn) SysMetricHealth(ctx context.Context) (bool, error) {
 	rp, err := c.ExecRaw("*1\n~3\n3\nSYS\n6\nMETRIC\n6\nHEALTH\n")
 	if err != nil {
 		return false, err
@@ -950,7 +946,7 @@ func (c *Conn) SysMetricHealth (ctx context.Context) (bool, error) {
 }
 
 // https://docs.skytable.io/actions/sys#metric
-func (c *Conn) SysMetricStorage (ctx context.Context) (uint64, error) {
+func (c *Conn) SysMetricStorage(ctx context.Context) (uint64, error) {
 	rp, err := c.ExecRaw("*1\n~3\n3\nSYS\n6\nMETRIC\n7\nSTORAGE\n")
 	if err != nil {
 		return 0, err
@@ -971,7 +967,7 @@ func (c *Conn) SysMetricStorage (ctx context.Context) (uint64, error) {
 // https://docs.skytable.io/actions/flushdb
 //
 // If entity is "", flush the current table
-func (c *Conn) FlushDB (ctx context.Context, entity string) (err error) {
+func (c *Conn) FlushDB(ctx context.Context, entity string) (err error) {
 	var rp *RawResponsePacket
 	if entity == "" {
 		rp, err = c.ExecRaw("*1\n~1\n7\nFLUSHDB\n")

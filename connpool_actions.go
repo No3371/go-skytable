@@ -390,7 +390,7 @@ func (c *ConnPool) MKSnap(ctx context.Context, name string) error {
 }
 
 // https://docs.skytable.io/actions/whereami
-func (c *ConnPool) WhereAmI (ctx context.Context) (string, error) {
+func (c *ConnPool) WhereAmI(ctx context.Context) (string, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return "", fmt.Errorf("*ConnPool.WhereAmI(): %w", err)
@@ -401,7 +401,7 @@ func (c *ConnPool) WhereAmI (ctx context.Context) (string, error) {
 }
 
 // https://docs.skytable.io/actions/dbsize
-func (c *ConnPool) DBSize (ctx context.Context, entity string) (uint64, error) {
+func (c *ConnPool) DBSize(ctx context.Context, entity string) (uint64, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return 0, fmt.Errorf("*ConnPool.DBSize(): %w", err)
@@ -412,7 +412,7 @@ func (c *ConnPool) DBSize (ctx context.Context, entity string) (uint64, error) {
 }
 
 // https://docs.skytable.io/actions/dbsize
-func (c *ConnPool) KeyLen (ctx context.Context, key string) (uint64, error) {
+func (c *ConnPool) KeyLen(ctx context.Context, key string) (uint64, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return 0, fmt.Errorf("*ConnPool.KeyLen(): %w", err)
@@ -425,7 +425,7 @@ func (c *ConnPool) KeyLen (ctx context.Context, key string) (uint64, error) {
 // https://docs.skytable.io/actions/sys#metric
 //
 // Returns true if "good", false when "critical"
-func (c *ConnPool) SysMetricHealth (ctx context.Context) (bool, error) {
+func (c *ConnPool) SysMetricHealth(ctx context.Context) (bool, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return false, fmt.Errorf("*ConnPool.SysMetricHealth(): %w", err)
@@ -436,7 +436,7 @@ func (c *ConnPool) SysMetricHealth (ctx context.Context) (bool, error) {
 }
 
 // https://docs.skytable.io/actions/sys#metric
-func (c *ConnPool) SysMetricStorage (ctx context.Context) (uint64, error) {
+func (c *ConnPool) SysMetricStorage(ctx context.Context) (uint64, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return 0, fmt.Errorf("*ConnPool.SysMetricStorage(): %w", err)
@@ -449,7 +449,7 @@ func (c *ConnPool) SysMetricStorage (ctx context.Context) (uint64, error) {
 // https://docs.skytable.io/actions/flushdb
 //
 // If entity is "", flush the current table
-func (c *ConnPool) FlushDB (ctx context.Context, entity string) error {
+func (c *ConnPool) FlushDB(ctx context.Context, entity string) error {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return fmt.Errorf("*ConnPool.FlushDB(): %w", err)

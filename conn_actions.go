@@ -573,6 +573,39 @@ func (c *Conn) PopBytes(ctx context.Context, key string) ([]byte, error) {
 	}
 }
 
+// https://docs.skytable.io/actions/mpop]
+func (c *Conn) MPop(ctx context.Context, keys []string) (*protocol.TypedArray, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.MPop{Keys: keys},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return nil, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return nil, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case *protocol.TypedArray:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespServerError:
+			return nil, protocol.ErrCodeServerError
+		default:
+			return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("MPop(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("MPop(): Unexpected response element: %v", resp), nil)
+	}
+}
+
 func (c *Conn) Exec(ctx context.Context, packet *QueryPacket) ([]response.ResponseEntry, error) {
 	packet.ctx = ctx
 

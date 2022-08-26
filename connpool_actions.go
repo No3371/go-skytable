@@ -231,6 +231,17 @@ func (c *ConnPool) PopBytes(ctx context.Context, key string) ([]byte, error) {
 	return conn.PopBytes(ctx, key)
 }
 
+// https://docs.skytable.io/actions/mpop
+func (c *ConnPool) MPop(ctx context.Context, keys []string) (*protocol.TypedArray, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return nil, fmt.Errorf("*ConnPool.MPop(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.MPop(ctx, keys)
+}
+
 func (c *ConnPool) Exec(ctx context.Context, packet *QueryPacket) ([]response.ResponseEntry, error) {
 	conn, err := c.popConn(false)
 	if err != nil {

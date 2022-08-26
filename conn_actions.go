@@ -86,7 +86,21 @@ func (c *Conn) Exists(ctx context.Context, keys []string) (existing uint64, err 
 		return 0, err
 	}
 
-	return rp.resps[0].Value.(uint64), nil
+	if rp.resps[0].Err != nil {
+		return 0, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case uint64:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		default:
+			return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("Exists(): Unexpected response code: %s", resp), nil)
+		}
+	default:
+		return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("Exists(): Unexpected response element: %v", resp), nil)
+	}
 }
 
 // https://docs.skytable.io/actions/del
@@ -107,7 +121,19 @@ func (c *Conn) Del(ctx context.Context, keys []string) (deleted uint64, err erro
 		return 0, rp.resps[0].Err
 	}
 
-	return rp.resps[0].Value.(uint64), nil
+	switch resp := rp.resps[0].Value.(type) {
+	case uint64:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespServerError:
+			return 0, protocol.ErrCodeServerError
+		default:
+			return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("Del(): Unexpected response code: %s", resp), nil)
+		}
+	default:
+		return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("Del(): Unexpected response element: %v", resp), nil)
+	}
 }
 
 // https://docs.skytable.io/actions/sdel

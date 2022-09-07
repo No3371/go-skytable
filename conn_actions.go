@@ -1118,3 +1118,515 @@ func (c *Conn) FlushDB(ctx context.Context, entity string) (err error) {
 		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("FlushDB(): Unexpected response element: %v", resp), nil)
 	}
 }
+
+// https://docs.skytable.io/actions/lget#lget
+func (c *Conn) LGet(ctx context.Context, listName string) (*protocol.TypedArray, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.LGet{ListName: listName},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return nil, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return nil, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case *protocol.TypedArray:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespNil:
+			return nil, protocol.ErrCodeNil
+		default:
+			return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("LGet(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("LGet(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/lget#limit
+func (c *Conn) LGetLimit(ctx context.Context, listName string, limit uint64) (*protocol.TypedArray, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.LGet{ListName: listName, Limit: limit},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return nil, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return nil, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case *protocol.TypedArray:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespNil:
+			return nil, protocol.ErrCodeNil
+		default:
+			return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("LGetLimit(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("LGetLimit(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/lget#len
+func (c *Conn) LGetLen(ctx context.Context, listName string) (uint64, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.LGetLen{ListName: listName},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return 0, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return 0, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case uint64:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespNil:
+			return 0, protocol.ErrCodeNil
+		default:
+			return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("LGetLen(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return 0, protocol.NewUnexpectedProtocolError(fmt.Sprintf("LGetLen(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/lget#valueat
+func (c *Conn) LGetValueAt(ctx context.Context, listName string, index uint64) (response.ResponseEntry, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.LGetValueAt{ListName: listName, Index: index},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return response.EmptyResponseEntry, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return response.EmptyResponseEntry, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case string:
+		return rp.resps[0], nil
+	case []byte:
+		return rp.resps[0], nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespNil:
+			return rp.resps[0], protocol.ErrCodeNil
+		default:
+			return rp.resps[0], protocol.NewUnexpectedProtocolError(fmt.Sprintf("LGetValueAt(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return rp.resps[0], protocol.NewUnexpectedProtocolError(fmt.Sprintf("LGetValueAt(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/lget#first
+func (c *Conn) LGetFirst(ctx context.Context, listName string) (response.ResponseEntry, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.LGetFirst{ListName: listName},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return response.EmptyResponseEntry, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return response.EmptyResponseEntry, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case string:
+		return rp.resps[0], nil
+	case []byte:
+		return rp.resps[0], nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespNil:
+			return rp.resps[0], protocol.ErrCodeNil
+		default:
+			return rp.resps[0], protocol.NewUnexpectedProtocolError(fmt.Sprintf("LGetFirst(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return rp.resps[0], protocol.NewUnexpectedProtocolError(fmt.Sprintf("LGetFirst(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/lget#last
+func (c *Conn) LGetLast(ctx context.Context, listName string) (response.ResponseEntry, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.LGetLast{ListName: listName},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return response.EmptyResponseEntry, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return response.EmptyResponseEntry, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case string:
+		return rp.resps[0], nil
+	case []byte:
+		return rp.resps[0], nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespNil:
+			return rp.resps[0], protocol.ErrCodeNil
+		default:
+			return rp.resps[0], protocol.NewUnexpectedProtocolError(fmt.Sprintf("LGetLast(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return rp.resps[0], protocol.NewUnexpectedProtocolError(fmt.Sprintf("LGetLast(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/lget#range
+//
+// If provided `to` is 0, it's omitted in the sent command.
+func (c *Conn) LGetRange(ctx context.Context, listName string, from uint64, to uint64) (*protocol.TypedArray, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.LGetRange{ListName: listName, From: from, To: to},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return nil, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return nil, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case *protocol.TypedArray:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespNil:
+			return nil, protocol.ErrCodeNil
+		default:
+			return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("LGetRange(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("LGetRange(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/lmod#push
+func (c *Conn) LModPush(ctx context.Context, listName string, elements []any) error {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.LModPush{ListName: listName, Elements: elements},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespOkay:
+			return nil
+		case protocol.RespNil:
+			return protocol.ErrCodeNil
+		case protocol.RespServerError:
+			return protocol.ErrCodeServerError
+		default:
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("LModPush(): Unexpected response code: %s", resp), nil)
+		}
+	default:
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("LModPush(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/lmod#insert
+func (c *Conn) LModInsert(ctx context.Context, listName string, index uint64, element any) error {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.LModInsert{ListName: listName, Index: index, Element: element},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespOkay:
+			return nil
+		case protocol.RespNil:
+			return protocol.ErrCodeNil
+		case protocol.RespServerError:
+			return protocol.ErrCodeServerError
+		default:
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("LModInsert(): Unexpected response code: %s", resp), nil)
+		}
+	default:
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("LModInsert(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/lmod#pop
+func (c *Conn) LModPop(ctx context.Context, listName string) (response.ResponseEntry, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.LModPop{ListName: listName},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return response.EmptyResponseEntry, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return response.EmptyResponseEntry, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case string:
+		return rp.resps[0], nil
+	case []byte:
+		return rp.resps[0], nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespNil:
+			return rp.resps[0], protocol.ErrCodeNil
+		default:
+			return rp.resps[0], protocol.NewUnexpectedProtocolError(fmt.Sprintf("LModPop(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return rp.resps[0], protocol.NewUnexpectedProtocolError(fmt.Sprintf("LModPop(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/lmod#pop
+func (c *Conn) LModPopIndex(ctx context.Context, listName string, index uint64) (response.ResponseEntry, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.LModPopIndex{ListName: listName, Index: index},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return response.EmptyResponseEntry, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return response.EmptyResponseEntry, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case string:
+		return rp.resps[0], nil
+	case []byte:
+		return rp.resps[0], nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespNil:
+			return rp.resps[0], protocol.ErrCodeNil
+		default:
+			return rp.resps[0], protocol.NewUnexpectedProtocolError(fmt.Sprintf("LModPopIndex(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return rp.resps[0], protocol.NewUnexpectedProtocolError(fmt.Sprintf("LModPopIndex(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/lmod#remove
+func (c *Conn) LModRemove(ctx context.Context, listName string, index uint64) error {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.LModRemove{ListName: listName, Index: index},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespOkay:
+			return nil
+		case protocol.RespNil:
+			return protocol.ErrCodeNil
+		case protocol.RespServerError:
+			return protocol.ErrCodeServerError
+		default:
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("LModRemove(): Unexpected response code: %s", resp), nil)
+		}
+	default:
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("LModRemove(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/lmod#clear
+func (c *Conn) LModClear(ctx context.Context, listName string) error {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.LModClear{ListName: listName},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespOkay:
+			return nil
+		case protocol.RespNil:
+			return protocol.ErrCodeNil
+		case protocol.RespServerError:
+			return protocol.ErrCodeServerError
+		default:
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("LModClear(): Unexpected response code: %s", resp), nil)
+		}
+	default:
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("LModClear(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/lset
+//
+// If `elements` is nil, it's omitted in the sent command.`
+func (c *Conn) LSet(ctx context.Context, listName string, elements []any) error {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.LSet{ListName: listName, Elements: elements},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespOkay:
+			return nil
+		case protocol.RespNil:
+			return protocol.ErrCodeNil
+		case protocol.RespServerError:
+			return protocol.ErrCodeServerError
+		default:
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("LSet(): Unexpected response code: %s", resp), nil)
+		}
+	default:
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("LSet(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/lskeys
+func (c *Conn) LSKeys(ctx context.Context, entity string, limit uint64) (*protocol.TypedArray, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.LSKeys{Entity: entity, Limit: limit},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return nil, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return nil, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case *protocol.TypedArray:
+		return resp, nil
+	default:
+		return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("LSKeys(): Unexpected response element: %v", resp), nil)
+	}
+}

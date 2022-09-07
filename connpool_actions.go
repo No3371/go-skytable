@@ -491,3 +491,173 @@ func (c *ConnPool) FlushDB(ctx context.Context, entity string) error {
 
 	return conn.FlushDB(ctx, entity)
 }
+
+// https://docs.skytable.io/actions/lget#lget
+func (c *ConnPool) LGet(ctx context.Context, listName string) (*protocol.TypedArray, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return nil, fmt.Errorf("*ConnPool.LGet(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.LGet(ctx, listName)
+}
+
+// https://docs.skytable.io/actions/lget#limit
+func (c *ConnPool) LGetLimit(ctx context.Context, listName string, limit uint64) (*protocol.TypedArray, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return nil, fmt.Errorf("*ConnPool.LGetLimit(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.LGetLimit(ctx, listName, limit)
+}
+
+// https://docs.skytable.io/actions/lget#len
+func (c *ConnPool) LGetLen(ctx context.Context, listName string) (uint64, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return 0, fmt.Errorf("*ConnPool.LGetLen(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.LGetLen(ctx, listName)
+}
+
+// https://docs.skytable.io/actions/lget#valueat
+func (c *ConnPool) LGetValueAt(ctx context.Context, listName string, index uint64) (response.ResponseEntry, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return response.EmptyResponseEntry, fmt.Errorf("*ConnPool.LGetValueAt(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.LGetValueAt(ctx, listName, index)
+}
+
+// https://docs.skytable.io/actions/lget#first
+func (c *ConnPool) LGetFirst(ctx context.Context, listName string) (response.ResponseEntry, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return response.EmptyResponseEntry, fmt.Errorf("*ConnPool.LGetFirst(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.LGetFirst(ctx, listName)
+}
+
+// https://docs.skytable.io/actions/lget#last
+func (c *ConnPool) LGetLast(ctx context.Context, listName string) (response.ResponseEntry, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return response.EmptyResponseEntry, fmt.Errorf("*ConnPool.LGetLast(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.LGetLast(ctx, listName)
+}
+
+// https://docs.skytable.io/actions/lget#range
+//
+// If provided `to` is 0, it's omitted in the sent command.
+func (c *ConnPool) LGetRange(ctx context.Context, listName string, from uint64, to uint64) (*protocol.TypedArray, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return nil, fmt.Errorf("*ConnPool.LGetRange(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.LGetRange(ctx, listName, from, to)
+}
+
+// https://docs.skytable.io/actions/lmod#push
+func (c *ConnPool) LModPush(ctx context.Context, listName string, elements []any) error {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPool.LModPush(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.LModPush(ctx, listName, elements)
+}
+
+// https://docs.skytable.io/actions/lmod#insert
+func (c *ConnPool) LModInsert(ctx context.Context, listName string, index uint64, element any) error {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPool.LModInsert(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.LModInsert(ctx, listName, index, element)
+}
+
+// https://docs.skytable.io/actions/lmod#pop
+func (c *ConnPool) LModPop(ctx context.Context, listName string) (response.ResponseEntry, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return response.EmptyResponseEntry, fmt.Errorf("*ConnPool.LModPop(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.LModPop(ctx, listName)
+}
+
+// https://docs.skytable.io/actions/lmod#pop
+func (c *ConnPool) LModPopIndex(ctx context.Context, listName string, index uint64) (response.ResponseEntry, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return response.EmptyResponseEntry, fmt.Errorf("*ConnPool.LModPopIndex(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.LModPopIndex(ctx, listName, index)
+}
+
+// https://docs.skytable.io/actions/lmod#remove
+func (c *ConnPool) LModRemove(ctx context.Context, listName string, index uint64) error {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPool.LModRemove(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.LModRemove(ctx, listName, index)
+}
+
+// https://docs.skytable.io/actions/lmod#clear
+func (c *ConnPool) LModClear(ctx context.Context, listName string) error {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPool.LModClear(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.LModClear(ctx, listName)
+}
+
+// https://docs.skytable.io/actions/lset
+//
+// If `elements` is nil, it's omitted in the sent command.`
+func (c *ConnPool) LSet(ctx context.Context, listName string, elements []any) error {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPool.LSet(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.LSet(ctx, listName, elements)
+}
+
+
+// https://docs.skytable.io/actions/lskeys
+func (c *ConnPool) LSKeys(ctx context.Context, entity string, limit uint64) (*protocol.TypedArray, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return nil, fmt.Errorf("*ConnPool.LSKeys(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.LSKeys(ctx, entity, limit)
+}

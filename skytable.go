@@ -27,14 +27,14 @@ type Skytable interface {
 	Del(ctx context.Context, keys []string) (deleted uint64, err error)     // https://docs.skytable.io/actions/del
 	SDel(ctx context.Context, keys []string) error                          // https://docs.skytable.io/actions/sdel
 
-	Get(ctx context.Context, key string) (response.ResponseEntry, error) // https://docs.skytable.io/actions/get
-	GetString(ctx context.Context, key string) (string, error)           // a strict version of [Get] that only success if the value is stored as String in Skytable.
-	GetBytes(ctx context.Context, key string) ([]byte, error)            // a strict version of [Get] that only success if the value is stored as BinaryString in Skytable.
-	MGet(ctx context.Context, keys []string) (*protocol.TypedArray, error)          // https://docs.skytable.io/actions/mget
-	Pop(ctx context.Context, key string) (response.ResponseEntry, error)            // https://docs.skytable.io/actions/pop
-	MPop(ctx context.Context, keys []string) (*protocol.TypedArray, error)          // https://docs.skytable.io/actions/mpop
+	Get(ctx context.Context, key string) (response.ResponseEntry, error)   // https://docs.skytable.io/actions/get
+	GetString(ctx context.Context, key string) (string, error)             // a strict version of [Get] that only success if the value is stored as String in Skytable.
+	GetBytes(ctx context.Context, key string) ([]byte, error)              // a strict version of [Get] that only success if the value is stored as BinaryString in Skytable.
+	MGet(ctx context.Context, keys []string) (*protocol.TypedArray, error) // https://docs.skytable.io/actions/mget
+	Pop(ctx context.Context, key string) (response.ResponseEntry, error)   // https://docs.skytable.io/actions/pop
+	MPop(ctx context.Context, keys []string) (*protocol.TypedArray, error) // https://docs.skytable.io/actions/mpop
 
-	Set(ctx context.Context, key string, value any) error                             // https://docs.skytable.io/actions/set
+	Set(ctx context.Context, key string, value any) error                           // https://docs.skytable.io/actions/set
 	MSetB(ctx context.Context, keys []string, values []any) (set uint64, err error) // https://docs.skytable.io/actions/mset
 	MSet(ctx context.Context, entries []action.KVPair) (set uint64, err error)      // https://docs.skytable.io/actions/mset
 	SSet(ctx context.Context, entries []action.KVPair) error                        // https://docs.skytable.io/actions/sset
@@ -42,7 +42,30 @@ type Skytable interface {
 
 	Update(ctx context.Context, key string, value any) error                          // https://docs.skytable.io/actions/update
 	MUpdate(ctx context.Context, entries []action.KVPair) (updated uint64, err error) // https://docs.skytable.io/actions/mupdate
-	SUpdate(ctx context.Context, entries []action.KVPair) error                        // https://docs.skytable.io/actions/supdate
+	SUpdate(ctx context.Context, entries []action.KVPair) error                       // https://docs.skytable.io/actions/supdate
+
+	LGet(ctx context.Context, listName string) (*protocol.TypedArray, error)                        // https://docs.skytable.io/actions/lget#lget
+	LGetLimit(ctx context.Context, listName string, limit uint64) (*protocol.TypedArray, error)     // https://docs.skytable.io/actions/lget#limit
+	LGetLen(ctx context.Context, listName string) (uint64, error)                                   // https://docs.skytable.io/actions/lget#len
+	LGetValueAt(ctx context.Context, listName string, index uint64) (response.ResponseEntry, error) // https://docs.skytable.io/actions/lget#valueat
+	LGetFirst(ctx context.Context, listName string) (response.ResponseEntry, error)                 // https://docs.skytable.io/actions/lget#first
+	LGetLast(ctx context.Context, listName string) (response.ResponseEntry, error)                  // https://docs.skytable.io/actions/lget#last
+	// https://docs.skytable.io/actions/lget#range
+	//
+	// If provided `to` is 0, it's omitted in the sent command.
+	LGetRange(ctx context.Context, listName string, from uint64, to uint64) (*protocol.TypedArray, error)
+
+	LModPush(ctx context.Context, listName string, elements []any) error                        // https://docs.skytable.io/actions/lmod#push
+	LModInsert(ctx context.Context, listName string, index uint64, element any) error        // https://docs.skytable.io/actions/lmod#insert
+	LModPop(ctx context.Context, listName string) (response.ResponseEntry, error) // https://docs.skytable.io/actions/lmod#pop
+	LModPopIndex(ctx context.Context, listName string, index uint64) (response.ResponseEntry, error) // https://docs.skytable.io/actions/lmod#pop
+	LModRemove(ctx context.Context, listName string, index uint64) error                        // https://docs.skytable.io/actions/lmod#remove
+	LModClear(ctx context.Context, listName string) error                                       // https://docs.skytable.io/actions/lmod#clear
+
+	// https://docs.skytable.io/actions/lset
+	//
+	// If `elements` is nil, it's omitted in the sent command.`
+	LSet(ctx context.Context, listName string, elements []any) error
 
 	Exec(ctx context.Context, packet *QueryPacket) ([]response.ResponseEntry, error)
 	ExecSingleActionPacketRaw(segments ...any) (response.ResponseEntry, error)
@@ -90,6 +113,9 @@ type Skytable interface {
 	//
 	// If entity is "", flush the current table
 	FlushDB(ctx context.Context, entity string) error
+
+	// https://docs.skytable.io/actions/lskeys
+	LSKeys(ctx context.Context, entity string, limit uint64) (*protocol.TypedArray, error)
 }
 
 type SkytablePool interface {

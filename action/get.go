@@ -35,7 +35,7 @@ func (q Get) ValidateProtocol(response interface{}) error {
 		case protocol.RespServerError:
 			return nil
 		default:
-			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("GET: Unexpected response element: %v", response), nil)
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("GET: Unexpected response code: %v", response), nil)
 		}
 	case string:
 		return nil

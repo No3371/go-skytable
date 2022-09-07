@@ -30,7 +30,7 @@ localAddr := &net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPo
 // Auth is disabled in the instance
 c, err := skytable.NewConn(localAddr)
 // or
-auth := func() (u, t string) {
+auth := func() (u, t string) { // ⚠️ You don't really write AuthProvider like this! Never include your credential in code!
         u = "USERNAME"
         t = "TOKEN"
         return u, t
@@ -45,7 +45,7 @@ localAddr := &net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPo
 // Auth is disabled in the instance
 c := skytable.NewConnPool(localAddr, skytable.DefaultConnPoolOptions)
 // or
-auth := func() (u, t string) {
+auth := func() (u, t string) { // ⚠️ You don't really write AuthProvider like this! Never include your credential in code!
         u = "USERNAME"
         t = "TOKEN"
         return u, t

@@ -186,7 +186,25 @@ func (c *Conn) Get(ctx context.Context, key string) (response.ResponseEntry, err
 		return response.EmptyResponseEntry, err
 	}
 
-	return rp.resps[0], nil
+	if rp.resps[0].Err != nil {
+		return response.EmptyResponseEntry, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case string:
+		return rp.resps[0], nil
+	case []byte:
+		return rp.resps[0], nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespNil:
+			return rp.resps[0], protocol.ErrCodeNil
+		default:
+			return rp.resps[0], protocol.NewUnexpectedProtocolError(fmt.Sprintf("Get(): Unexpected response code: %v", resp), nil)
+		}
+	default:
+		return rp.resps[0], protocol.NewUnexpectedProtocolError(fmt.Sprintf("Get(): Unexpected response element: %v", resp), nil)
+	}
 }
 
 // GetString() is a strict version of [Get] that only success if the value is stored as String in Skytable.

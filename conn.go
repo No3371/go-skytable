@@ -44,7 +44,8 @@ func (c *Conn) errClose(err error) {
 	c.Close()
 }
 
-// A Conn may closes itself when errors occured when reading/writng packets
+// A Conn may closes itself when errors occured when reading/writng packets.
+//
 // While all the errors are being returned and can be handled, enabling auto reconnection will save you the trouble dealing with disconnection
 //
 // ⚠️ This could make you unaware of issues.

@@ -1,7 +1,7 @@
 package protocol
 
 //go:generate stringer -type=ResponseCode
-type ResponseCode int
+type ResponseCode int8
 
 const (
 	RespErr			ResponseCode = -2     // NOTE: A package-customized value not defined in Skyhash. 

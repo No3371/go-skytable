@@ -18,7 +18,7 @@ func (rr ResponseReader) readResponseCode(chars int64) (protocol.ResponseCode, e
 	}
 
 	if read[0] >= '0' && read[0] <= '9' {
-		i, err := strconv.ParseInt(string(read[:len(read)-1]), 10, 64)
+		i, err := strconv.ParseInt(string(read[:len(read)-1]), 10, 8)
 		if err != nil {
 			return protocol.RespErr, err
 		}

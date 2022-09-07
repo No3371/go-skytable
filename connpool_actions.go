@@ -34,6 +34,84 @@ func (c *ConnPool) AuthLogin(ctx context.Context, authProvider AuthProvider) err
 	return err
 }
 
+// *ConnPool.AuthLogin() will take all conns and do [Conn.AuthLogout]() on each, and overwrite the AuthProvider of the pool.
+//
+// Noted that if there's an error, it's possible that the iteration is not completed and the connections may be using different users.
+func (c *ConnPool) AuthLogout(ctx context.Context) error {
+	err := c.DoEachConn(func(conn *Conn) error {
+		return conn.AuthLogout(ctx)
+	})
+	return err
+}
+
+// https://docs.skytable.io/actions/auth#claim
+func (c *ConnPool) AuthClaim(ctx context.Context, originKey string) (string, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return "", fmt.Errorf("*ConnPool.AuthClaim(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.AuthClaim(ctx, originKey)
+}
+
+// https://docs.skytable.io/actions/auth#adduser
+func (c *ConnPool) AuthAddUser(ctx context.Context, username string) (string, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return "", fmt.Errorf("*ConnPool.AuthAddUser(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.AuthAddUser(ctx, username)
+}
+
+// https://docs.skytable.io/actions/auth#deluser
+func (c *ConnPool) AuthDelUser(ctx context.Context, username string) error {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return fmt.Errorf("*ConnPool.AuthDelUser(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.AuthDelUser(ctx, username)
+}
+
+// https://docs.skytable.io/actions/auth#restore
+//
+// If provided `originKey` is "", it'll be omitted in the sent command
+func (c *ConnPool) AuthRestore(ctx context.Context, originKey string, username string) (string, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return "", fmt.Errorf("*ConnPool.AuthRestore(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.AuthRestore(ctx, originKey, username)
+}
+
+// https://docs.skytable.io/actions/auth#listuser
+func (c *ConnPool) AuthListUser(ctx context.Context) (*protocol.TypedArray, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return nil, fmt.Errorf("*ConnPool.AuthListUser(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.AuthListUser(ctx)
+}
+
+// https://docs.skytable.io/actions/auth#whoami
+func (c *ConnPool) AuthWhoAmI(ctx context.Context) (string, error) {
+	conn, err := c.popConn(false)
+	if err != nil {
+		return "", fmt.Errorf("*ConnPool.AuthWhoAmI(): %w", err)
+	}
+	defer c.pushConn(conn)
+
+	return conn.AuthWhoAmI(ctx)
+}
+
 // https://docs.skytable.io/actions/exists
 func (c *ConnPool) Exists(ctx context.Context, keys []string) (existing uint64, err error) {
 	conn, err := c.popConn(false)

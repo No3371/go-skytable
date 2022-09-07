@@ -44,7 +44,7 @@ func (c *Conn) AuthLogin(ctx context.Context, authProvider AuthProvider) error {
 	p := &QueryPacket{
 		ctx: ctx,
 		actions: []Action{
-			action.Login{Username: username, Token: token},
+			action.AuthLogin{Username: username, Token: token},
 		},
 	}
 
@@ -65,12 +65,235 @@ func (c *Conn) AuthLogin(ctx context.Context, authProvider AuthProvider) error {
 		case protocol.RespBadCredentials:
 			return protocol.ErrCodeBadCredentials
 		default:
-			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("AUTH LOGIN: Unexpected response code: %s", code), nil)
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("AuthLogin(): Unexpected response code: %s", code), nil)
 		}
 	default:
-		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("Unexpected response element: %v", code), nil)
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("AuthLogin(): Unexpected response element: %v", code), nil)
 	}
 }
+
+// https://docs.skytable.io/actions/auth#logout
+func (c *Conn) AuthLogout(ctx context.Context) error {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.AuthLogout{},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
+	}
+
+	switch code := rp.resps[0].Value.(type) {
+	case protocol.ResponseCode:
+		switch code {
+		case protocol.RespOkay:
+			return nil
+		case protocol.RespBadCredentials:
+			return protocol.ErrCodeBadCredentials
+		default:
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("AuthLogout(): Unexpected response code: %s", code), nil)
+		}
+	default:
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("AuthLogout(): Unexpected response element: %v", code), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/auth#claim
+func (c *Conn) AuthClaim(ctx context.Context, originKey string) (string, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.AuthClaim{OriginKey: originKey},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return "", err
+	}
+
+	if rp.resps[0].Err != nil {
+		return "", rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case string:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespBadCredentials:
+			return "", protocol.ErrCodeBadCredentials
+		default:
+			return "", protocol.NewUnexpectedProtocolError(fmt.Sprintf("AuthClaim(): Unexpected response code: %s", resp), nil)
+		}
+	default:
+		return "", protocol.NewUnexpectedProtocolError(fmt.Sprintf("AuthClaim(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/auth#adduser
+func (c *Conn) AuthAddUser(ctx context.Context, username string) (string, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.AuthAddUser{Username: username},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return "", err
+	}
+
+	if rp.resps[0].Err != nil {
+		return "", rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case string:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespBadCredentials:
+			return "", protocol.ErrCodeBadCredentials
+		default:
+			return "", protocol.NewUnexpectedProtocolError(fmt.Sprintf("AuthAddUser(): Unexpected response code: %s", resp), nil)
+		}
+	default:
+		return "", protocol.NewUnexpectedProtocolError(fmt.Sprintf("AuthAddUser(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/auth#deluser
+func (c *Conn) AuthDelUser(ctx context.Context, username string) error {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.AuthDelUser{Username: username},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return err
+	}
+
+	if rp.resps[0].Err != nil {
+		return rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespOkay:
+			return nil
+		case protocol.RespBadCredentials:
+			return protocol.ErrCodeBadCredentials
+		case protocol.RespAuthnRealmError:
+			return protocol.ErrCodeAuthnRealmError
+		default:
+			return protocol.NewUnexpectedProtocolError(fmt.Sprintf("AuthDelUser(): Unexpected response code: %s", resp), nil)
+		}
+	default:
+		return protocol.NewUnexpectedProtocolError(fmt.Sprintf("AuthDelUser(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/auth#restore
+//
+// If provided `originKey` is "", it'll be omitted in the sent command
+func (c *Conn) AuthRestore(ctx context.Context, originKey string, username string) (string, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.AuthRestore{OriginKey: originKey, Username: username},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return "", err
+	}
+
+	if rp.resps[0].Err != nil {
+		return "", rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case string:
+		return resp, nil
+	case protocol.ResponseCode:
+		switch resp {
+		case protocol.RespBadCredentials:
+			return "", protocol.ErrCodeBadCredentials
+		default:
+			return "", protocol.NewUnexpectedProtocolError(fmt.Sprintf("AuthRestore(): Unexpected response code: %s", resp), nil)
+		}
+	default:
+		return "", protocol.NewUnexpectedProtocolError(fmt.Sprintf("AuthRestore(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/auth#listuser
+func (c *Conn) AuthListUser(ctx context.Context) (*protocol.TypedArray, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.AuthListUser{},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return nil, err
+	}
+
+	if rp.resps[0].Err != nil {
+		return nil, rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case *protocol.TypedArray:
+		return resp, nil
+	default:
+		return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("AuthListUser(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+// https://docs.skytable.io/actions/auth#whoami
+func (c *Conn) AuthWhoAmI(ctx context.Context) (string, error) {
+	p := &QueryPacket{
+		ctx: ctx,
+		actions: []Action{
+			action.AuthWhoAmI{},
+		},
+	}
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return "", err
+	}
+
+	if rp.resps[0].Err != nil {
+		return "", rp.resps[0].Err
+	}
+
+	switch resp := rp.resps[0].Value.(type) {
+	case string:
+		return resp, nil
+	default:
+		return "", protocol.NewUnexpectedProtocolError(fmt.Sprintf("AuthWhoAmI(): Unexpected response element: %v", resp), nil)
+	}
+}
+
+
 
 // https://docs.skytable.io/actions/exists
 func (c *Conn) Exists(ctx context.Context, keys []string) (existing uint64, err error) {

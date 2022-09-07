@@ -94,7 +94,7 @@ resp, err := c.BuildAndExecQuery(p)
 | ✅ Float | ⬜ SmallInteger | ⬜ SignedSmallInteger | 🟪 Json |  |
 | ⬜ Array | ✅ FlatArray | ✅ AnyArray | ✅ TypedArray | ✅ TypedNonNullArray |
 
-### Actions
+### Actions (Fully Supports Skytable 0.7.6)
 
 | ✅ Implemented | ⬜ NotImplemented | 🟪 Partial  |   |    |
 | --- | --- | --- | --- | --- |
@@ -104,7 +104,7 @@ resp, err := c.BuildAndExecQuery(p)
 | ✅ MPOP | ✅ MUPDATE | ✅ SDEL | ✅ SSET | ✅ SUPDATE |
 | ✅ LMOD | ✅ LGET | ✅ LSET | ✅ LSKEYS | |
 | ✅ DBSIZE | ✅ FLUSHDB | ✅ KEYLEN | ✅ WHEREAMI | ✅ MKSNAP |
-| ✅ SYS | 🟪 AUTH | | | |
+| ✅ SYS | ✅ AUTH | | | |
 
 ## SkytableX
 

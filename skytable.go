@@ -22,6 +22,22 @@ type Action interface {
 type Skytable interface {
 	Heya(ctx context.Context, echo string) error                    // https://docs.skytable.io/actions/heya
 	AuthLogin(ctx context.Context, authProvider AuthProvider) error // https://docs.skytable.io/actions/auth#login
+	// https://docs.skytable.io/actions/auth#logout
+	AuthLogout(ctx context.Context) error
+	// https://docs.skytable.io/actions/auth#claim
+	AuthClaim(ctx context.Context, originKey string) (string, error)
+	// https://docs.skytable.io/actions/auth#adduser
+	AuthAddUser(ctx context.Context, username string) (string, error)
+	// https://docs.skytable.io/actions/auth#deluser
+	AuthDelUser(ctx context.Context, username string) error
+	// https://docs.skytable.io/actions/auth#restore
+	//
+	// If provided `originKey` is "", it'll be omitted in the sent command
+	AuthRestore(ctx context.Context, originKey string, username string) (string, error)
+	// https://docs.skytable.io/actions/auth#listuser
+	AuthListUser(ctx context.Context) (*protocol.TypedArray, error)
+	// https://docs.skytable.io/actions/auth#whoami
+	AuthWhoAmI(ctx context.Context) (string, error)
 
 	Exists(ctx context.Context, keys []string) (existing uint64, err error) // https://docs.skytable.io/actions/exists
 	Del(ctx context.Context, keys []string) (deleted uint64, err error)     // https://docs.skytable.io/actions/del

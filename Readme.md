@@ -8,8 +8,6 @@ A Go driver of [Skytable](https://github.com/skytable/skytable), a fast, secure 
 
 The package implements Skyhash 1.1.
 
-Tested with: Skytable 0.7.5.
-
 DDL actions implemented.
 
 The interfaces may be changed anytime before first release.

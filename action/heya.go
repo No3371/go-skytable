@@ -22,13 +22,13 @@ func (q Heya) AppendToPacket(builder *strings.Builder) (err error) {
 		return err
 	}
 
-	err = AppendElement("HEYA", builder, false)
+	err = AppendElement(builder, false, "HEYA")
 	if err != nil {
 		return err
 	}
 
 	if q.Echo != "" {
-		err = AppendElement(q.Echo, builder, false)
+		err = AppendElement(builder, false, q.Echo)
 		if err != nil {
 			return err
 		}

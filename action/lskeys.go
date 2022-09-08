@@ -57,7 +57,7 @@ func (q LSKeys) AppendToPacket(builder *strings.Builder) (err error) {
 			return err
 		}
 
-		err = AppendElement("LSKEYS", builder, false)
+		err = AppendElement(builder, false, "LSKEYS")
 		if err != nil {
 			return err
 		}

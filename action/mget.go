@@ -13,18 +13,18 @@ type MGet struct {
 }
 
 func (q MGet) AppendToPacket(builder *strings.Builder) error {
-	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, len(q.Keys) + 1, builder)
+	err := AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, len(q.Keys)+1, builder)
 	if err != nil {
 		return err
 	}
 
-	err = AppendElement("MGET", builder, false)
+	err = AppendElement(builder, false, "MGET")
 	if err != nil {
 		return err
 	}
 
 	for _, k := range q.Keys {
-		err = AppendElement(k, builder, false)
+		err = AppendElement(builder, false, k)
 		if err != nil {
 			return err
 		}

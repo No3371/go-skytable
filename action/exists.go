@@ -18,13 +18,13 @@ func (q Exists) AppendToPacket(builder *strings.Builder) error {
 		return err
 	}
 
-	err = AppendElement("EXISTS", builder, false)
+	err = AppendElement(builder, false, "EXISTS")
 	if err != nil {
 		return err
 	}
 
 	for _, k := range q.Keys {
-		err = AppendElement(k, builder, false)
+		err = AppendElement(builder, false, k)
 		if err != nil {
 			return err
 		}

@@ -20,8 +20,10 @@ type Action interface {
 }
 
 type Skytable interface {
-	Heya(ctx context.Context, echo string) error                    // https://docs.skytable.io/actions/heya
-	AuthLogin(ctx context.Context, authProvider AuthProvider) error // https://docs.skytable.io/actions/auth#login
+	// https://docs.skytable.io/actions/heya
+	Heya(ctx context.Context, echo string) error
+	// https://docs.skytable.io/actions/auth#login
+	AuthLogin(ctx context.Context, authProvider AuthProvider) error
 	// https://docs.skytable.io/actions/auth#logout
 	AuthLogout(ctx context.Context) error
 	// https://docs.skytable.io/actions/auth#claim
@@ -39,44 +41,72 @@ type Skytable interface {
 	// https://docs.skytable.io/actions/auth#whoami
 	AuthWhoAmI(ctx context.Context) (string, error)
 
-	Exists(ctx context.Context, keys []string) (existing uint64, err error) // https://docs.skytable.io/actions/exists
-	Del(ctx context.Context, keys []string) (deleted uint64, err error)     // https://docs.skytable.io/actions/del
-	SDel(ctx context.Context, keys []string) error                          // https://docs.skytable.io/actions/sdel
+	// https://docs.skytable.io/actions/exists
+	Exists(ctx context.Context, keys []string) (existing uint64, err error)
+	// https://docs.skytable.io/actions/del
+	Del(ctx context.Context, keys []string) (deleted uint64, err error)
+	// https://docs.skytable.io/actions/sdel
+	SDel(ctx context.Context, keys []string) error
 
-	Get(ctx context.Context, key string) (response.ResponseEntry, error)   // https://docs.skytable.io/actions/get
-	GetString(ctx context.Context, key string) (string, error)             // a strict version of [Get] that only success if the value is stored as String in Skytable.
-	GetBytes(ctx context.Context, key string) ([]byte, error)              // a strict version of [Get] that only success if the value is stored as BinaryString in Skytable.
-	MGet(ctx context.Context, keys []string) (*protocol.TypedArray, error) // https://docs.skytable.io/actions/mget
-	Pop(ctx context.Context, key string) (response.ResponseEntry, error)   // https://docs.skytable.io/actions/pop
-	MPop(ctx context.Context, keys []string) (*protocol.TypedArray, error) // https://docs.skytable.io/actions/mpop
+	// https://docs.skytable.io/actions/get
+	Get(ctx context.Context, key string) (response.ResponseEntry, error)
+	// a strict version of [Get] that only success if the value is stored as String in Skytable.
+	GetString(ctx context.Context, key string) (string, error)
+	// a strict version of [Get] that only success if the value is stored as BinaryString in Skytable.
+	GetBytes(ctx context.Context, key string) ([]byte, error)
+	// https://docs.skytable.io/actions/mget
+	MGet(ctx context.Context, keys []string) (*protocol.TypedArray, error)
+	// https://docs.skytable.io/actions/pop
+	Pop(ctx context.Context, key string) (response.ResponseEntry, error)
+	// https://docs.skytable.io/actions/mpop
+	MPop(ctx context.Context, keys []string) (*protocol.TypedArray, error)
 
-	Set(ctx context.Context, key string, value any) error                           // https://docs.skytable.io/actions/set
-	MSetB(ctx context.Context, keys []string, values []any) (set uint64, err error) // https://docs.skytable.io/actions/mset
-	MSet(ctx context.Context, entries []action.KVPair) (set uint64, err error)      // https://docs.skytable.io/actions/mset
-	SSet(ctx context.Context, entries []action.KVPair) error                        // https://docs.skytable.io/actions/sset
+	// https://docs.skytable.io/actions/set
+	Set(ctx context.Context, key string, value any) error
+	// https://docs.skytable.io/actions/mset
+	MSetB(ctx context.Context, keys []string, values []any) (set uint64, err error)
+	// https://docs.skytable.io/actions/mset
+	MSet(ctx context.Context, entries []action.KVPair) (set uint64, err error)
+	// https://docs.skytable.io/actions/sset
+	SSet(ctx context.Context, entries []action.KVPair) error
 	USet(ctx context.Context, entries ...action.KVPair) (set uint64, err error)
 
-	Update(ctx context.Context, key string, value any) error                          // https://docs.skytable.io/actions/update
-	MUpdate(ctx context.Context, entries []action.KVPair) (updated uint64, err error) // https://docs.skytable.io/actions/mupdate
-	SUpdate(ctx context.Context, entries []action.KVPair) error                       // https://docs.skytable.io/actions/supdate
+	// https://docs.skytable.io/actions/update
+	Update(ctx context.Context, key string, value any) error
+	// https://docs.skytable.io/actions/mupdate
+	MUpdate(ctx context.Context, entries []action.KVPair) (updated uint64, err error)
+	// https://docs.skytable.io/actions/supdate
+	SUpdate(ctx context.Context, entries []action.KVPair) error
 
-	LGet(ctx context.Context, listName string) (*protocol.TypedArray, error)                        // https://docs.skytable.io/actions/lget#lget
-	LGetLimit(ctx context.Context, listName string, limit uint64) (*protocol.TypedArray, error)     // https://docs.skytable.io/actions/lget#limit
-	LGetLen(ctx context.Context, listName string) (uint64, error)                                   // https://docs.skytable.io/actions/lget#len
-	LGetValueAt(ctx context.Context, listName string, index uint64) (response.ResponseEntry, error) // https://docs.skytable.io/actions/lget#valueat
-	LGetFirst(ctx context.Context, listName string) (response.ResponseEntry, error)                 // https://docs.skytable.io/actions/lget#first
-	LGetLast(ctx context.Context, listName string) (response.ResponseEntry, error)                  // https://docs.skytable.io/actions/lget#last
+	// https://docs.skytable.io/actions/lget#lget
+	LGet(ctx context.Context, listName string) (*protocol.TypedArray, error)
+	// https://docs.skytable.io/actions/lget#limit
+	LGetLimit(ctx context.Context, listName string, limit uint64) (*protocol.TypedArray, error)
+	// https://docs.skytable.io/actions/lget#len
+	LGetLen(ctx context.Context, listName string) (uint64, error)
+	// https://docs.skytable.io/actions/lget#valueat
+	LGetValueAt(ctx context.Context, listName string, index uint64) (response.ResponseEntry, error)
+	// https://docs.skytable.io/actions/lget#first
+	LGetFirst(ctx context.Context, listName string) (response.ResponseEntry, error)
+	// https://docs.skytable.io/actions/lget#last
+	LGetLast(ctx context.Context, listName string) (response.ResponseEntry, error)
 	// https://docs.skytable.io/actions/lget#range
 	//
 	// If provided `to` is 0, it's omitted in the sent command.
 	LGetRange(ctx context.Context, listName string, from uint64, to uint64) (*protocol.TypedArray, error)
 
-	LModPush(ctx context.Context, listName string, elements []any) error                        // https://docs.skytable.io/actions/lmod#push
-	LModInsert(ctx context.Context, listName string, index uint64, element any) error        // https://docs.skytable.io/actions/lmod#insert
-	LModPop(ctx context.Context, listName string) (response.ResponseEntry, error) // https://docs.skytable.io/actions/lmod#pop
-	LModPopIndex(ctx context.Context, listName string, index uint64) (response.ResponseEntry, error) // https://docs.skytable.io/actions/lmod#pop
-	LModRemove(ctx context.Context, listName string, index uint64) error                        // https://docs.skytable.io/actions/lmod#remove
-	LModClear(ctx context.Context, listName string) error                                       // https://docs.skytable.io/actions/lmod#clear
+	// https://docs.skytable.io/actions/lmod#push
+	LModPush(ctx context.Context, listName string, elements []any) error
+	// https://docs.skytable.io/actions/lmod#insert
+	LModInsert(ctx context.Context, listName string, index uint64, element any) error
+	// https://docs.skytable.io/actions/lmod#pop
+	LModPop(ctx context.Context, listName string) (response.ResponseEntry, error)
+	// https://docs.skytable.io/actions/lmod#pop
+	LModPopIndex(ctx context.Context, listName string, index uint64) (response.ResponseEntry, error)
+	// https://docs.skytable.io/actions/lmod#remove
+	LModRemove(ctx context.Context, listName string, index uint64) error
+	// https://docs.skytable.io/actions/lmod#clear
+	LModClear(ctx context.Context, listName string) error
 
 	// https://docs.skytable.io/actions/lset
 	//
@@ -91,40 +121,51 @@ type Skytable interface {
 	// ``USE KEYSPACE'' and ``USE TABLE'' are unified into ``USE''.
 	Use(ctx context.Context, path string) error
 
-	InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, error) // https://docs.skytable.io/ddl/#inspect
-	CreateKeyspace(ctx context.Context, name string) error              // https://docs.skytable.io/ddl/#keyspaces
-	DropKeyspace(ctx context.Context, name string) error                // https://docs.skytable.io/ddl/#keyspaces-1
+	// https://docs.skytable.io/ddl/#inspect
+	InspectKeyspaces(ctx context.Context) (*protocol.TypedArray, error)
+	// https://docs.skytable.io/ddl/#keyspaces
+	CreateKeyspace(ctx context.Context, name string) error
+	// https://docs.skytable.io/ddl/#keyspaces-1
+	DropKeyspace(ctx context.Context, name string) error
 	// https://docs.skytable.io/ddl/#keyspaces-2
 	//
 	// If name is "", inspect the current keyspace
 	InspectKeyspace(ctx context.Context, name string) (*protocol.TypedArray, error)
 
-	CreateTable(ctx context.Context, path string, modelDesc any) error // https://docs.skytable.io/ddl/#tables
-	DropTable(ctx context.Context, path string) error                  // https://docs.skytable.io/ddl/#tables-1
+	// https://docs.skytable.io/ddl/#tables
+	CreateTable(ctx context.Context, path string, modelDesc any) error
+	// https://docs.skytable.io/ddl/#tables-1
+	DropTable(ctx context.Context, path string) error
 	// https://docs.skytable.io/ddl/#tables-2
 	//
 	// If path is "", inspect the current table
 	InspectTable(ctx context.Context, path string) (protocol.ModelDescription, error)
 
-	SysInfoVersion(ctx context.Context) (string, error)   // https://docs.skytable.io/actions/sys#info
-	SysInfoProtocol(ctx context.Context) (string, error)  // https://docs.skytable.io/actions/sys#info
-	SysInfoProtoVer(ctx context.Context) (float32, error) // https://docs.skytable.io/actions/sys#info
+	// https://docs.skytable.io/actions/sys#info
+	SysInfoVersion(ctx context.Context) (string, error)
+	// https://docs.skytable.io/actions/sys#info
+	SysInfoProtocol(ctx context.Context) (string, error)
+	// https://docs.skytable.io/actions/sys#info
+	SysInfoProtoVer(ctx context.Context) (float32, error)
 	// https://docs.skytable.io/actions/sys#metric
 	//
 	// Returns true if "good", false when "critical"
 	SysMetricHealth(ctx context.Context) (bool, error)
-	SysMetricStorage(ctx context.Context) (uint64, error) // https://docs.skytable.io/actions/sys#metric
+	// https://docs.skytable.io/actions/sys#metric
+	SysMetricStorage(ctx context.Context) (uint64, error)
 
 	// https://docs.skytable.io/actions/mksnap
 	//
 	// If name is "", it will only send "MKSNAP"
 	MKSnap(ctx context.Context, name string) error
-	WhereAmI(ctx context.Context) (string, error) // https://docs.skytable.io/actions/whereami
+	// https://docs.skytable.io/actions/whereami
+	WhereAmI(ctx context.Context) (string, error)
 	// https://docs.skytable.io/actions/dbsize
 	//
 	// If entity is "", check the current table
 	DBSize(ctx context.Context, entity string) (uint64, error)
-	KeyLen(ctx context.Context, key string) (uint64, error) // https://docs.skytable.io/actions/keylen
+	// https://docs.skytable.io/actions/keylen
+	KeyLen(ctx context.Context, key string) (uint64, error)
 	// https://docs.skytable.io/actions/flushdb
 	//
 	// If entity is "", flush the current table

@@ -16,6 +16,40 @@ type ConnX struct {
 	skytable.Conn
 }
 
+type TypedArrayWithKey struct {
+	*protocol.TypedArray
+	keys []string
+}
+
+func (arr *TypedArrayWithKey) Iterate (iterator func (k string, v any)) {
+	for i := 0; i < len(arr.Elements); i++ {
+		iterator(arr.keys[i], arr.Elements[i])
+	}
+}
+
+// https://docs.skytable.io/actions/mget
+func (c *ConnX) MGetWithKeys(ctx context.Context, keys []string) (*TypedArrayWithKey, error) {
+	p := skytable.NewQueryPacketContext(ctx, []skytable.Action {
+		action.MGet{Keys: keys},
+	})
+
+	rp, err := c.BuildAndExecQuery(p)
+	if err != nil {
+		return nil, err
+	}
+
+	if rp.Resps()[0].Err != nil {
+		return nil, rp.Resps()[0].Err
+	}
+
+	switch resp := rp.Resps()[0].Value.(type) {
+	case *protocol.TypedArray:
+		return &TypedArrayWithKey{ resp, keys }, nil
+	default:
+		return nil, protocol.NewUnexpectedProtocolError(fmt.Sprintf("MGet(): Unexpected response element: %v", resp), nil)
+	}
+}
+
 // SimTTL only works with BinaryString values
 func (c *ConnX) GetWithSimTTL(ctx context.Context, key string) (resp []byte, tsUnix time.Time, err error) {
 	p := skytable.NewQueryPacketContext(ctx, []skytable.Action {

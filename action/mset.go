@@ -18,18 +18,18 @@ func (q MSetA) AppendToPacket(builder *strings.Builder) error {
 		return err
 	}
 
-	err = AppendElement("MSET", builder, false)
+	err = AppendElement(builder, false, "MSET")
 	if err != nil {
 		return err
 	}
 
 	for _, e := range q.Entries {
-		err = AppendElement(e.K, builder, false)
+		err = AppendElement(builder, false, e.K)
 		if err != nil {
 			return err
 		}
 
-		err = AppendElement(e.V, builder, false)
+		err = AppendElement(builder, false, e.V)
 		if err != nil {
 			return err
 		}
@@ -61,10 +61,10 @@ type MSetB struct {
 
 func (q MSetB) AppendToPacket(builder *strings.Builder) error {
 	AppendArrayHeader(protocol.CompoundTypeAnyArray, 0, len(q.Keys)*2+1, builder)
-	AppendElement("MSET", builder, false)
+	AppendElement(builder, false, "MSET")
 	for i := range q.Keys {
-		AppendElement(q.Keys[i], builder, false)
-		AppendElement(q.Values[i], builder, false)
+		AppendElement(builder, false, q.Keys[i])
+		AppendElement(builder, false, q.Values[i])
 	}
 	return nil
 }

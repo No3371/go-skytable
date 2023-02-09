@@ -18,13 +18,13 @@ func (q Del) AppendToPacket(builder *strings.Builder) error {
 		return err
 	}
 
-	err = AppendElement("DEL", builder, false)
+	err = AppendElement(builder, false, "DEL")
 	if err != nil {
 		return err
 	}
 
 	for _, k := range q.Keys {
-		err = AppendElement(k, builder, false)
+		err = AppendElement(builder, false, k)
 		if err != nil {
 			return err
 		}

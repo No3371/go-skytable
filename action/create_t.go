@@ -51,7 +51,7 @@ func (q CreateTable) AppendToPacket(builder *strings.Builder) (err error) {
 		}
 
 		if modelDesc.Volatile {
-			err = AppendElement("volatile", builder, false)
+			err = AppendElement(builder, false, "volatile")
 			if err != nil {
 				return err
 			}

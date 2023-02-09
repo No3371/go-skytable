@@ -18,18 +18,18 @@ func (q MUpdate) AppendToPacket(builder *strings.Builder) error {
 		return err
 	}
 
-	err = AppendElement("MUPDATE", builder, false)
+	err = AppendElement(builder, false, "MUPDATE")
 	if err != nil {
 		return err
 	}
 
 	for _, e := range q.Entries {
-		err = AppendElement(e.K, builder, false)
+		err = AppendElement(builder, false, e.K)
 		if err != nil {
 			return err
 		}
 
-		err = AppendElement(e.V, builder, false)
+		err = AppendElement(builder, false, e.V)
 		if err != nil {
 			return err
 		}

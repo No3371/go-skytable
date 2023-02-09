@@ -221,7 +221,7 @@ func (rr ResponseReader) readOneEntryTyped(dt protocol.DataType) (v interface{},
 		log.Printf("    typed read: %v", read)
 	}
 
-	if read[0] == 0 && read[1] == '0' { // NULL
+	if read[0] == 0 && read[1] == '\n' { // NULL
 		return nil, nil
 	}
 

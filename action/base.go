@@ -16,7 +16,7 @@ type KVPair struct {
 
 func AppendElements(builder *strings.Builder, typed bool, v ...any) error {
 	for _, e := range v {
-		err := AppendElement(e, builder, typed)
+		err := AppendElement(builder, typed, e)
 		if err != nil {
 			return err
 		}
@@ -25,7 +25,7 @@ func AppendElements(builder *strings.Builder, typed bool, v ...any) error {
 	return nil
 }
 
-func AppendElement(v interface{}, builder *strings.Builder, typed bool) error {
+func AppendElement(builder *strings.Builder, typed bool, v interface{}) error {
 	if v == nil {
 		fmt.Fprintf(builder, "\\0\n")
 		return nil
@@ -134,7 +134,7 @@ func AppendElement(v interface{}, builder *strings.Builder, typed bool) error {
 		switch v.ArrayType {
 		case protocol.CompoundTypeTypedArray:
 			for _, e := range v.Elements {
-				err := AppendElement(e, builder, false)
+				err := AppendElement(builder, false, e)
 				if err != nil {
 					return err
 				}
@@ -144,7 +144,7 @@ func AppendElement(v interface{}, builder *strings.Builder, typed bool) error {
 				if e == nil {
 					return protocol.NewUnexpectedProtocolError("Appending an nil element to non-null typed array ", nil) // NON NULL
 				}
-				err := AppendElement(e, builder, false)
+				err := AppendElement(builder, false, e)
 				if err != nil {
 					return err
 				}
@@ -161,7 +161,7 @@ func AppendElement(v interface{}, builder *strings.Builder, typed bool) error {
 				return protocol.NewUnexpectedProtocolError("Appending an array without type info", nil)
 			}
 			for _, e := range v.Elements {
-				err := AppendElement(e, builder, true)
+				err := AppendElement(builder, true, e)
 				if err != nil {
 					return err
 				}
@@ -181,7 +181,7 @@ func AppendElement(v interface{}, builder *strings.Builder, typed bool) error {
 					return protocol.NewUnexpectedProtocolError("Appending an flat-array containing another array", nil)
 				}
 
-				err := AppendElement(e, builder, false)
+				err := AppendElement(builder, false, e)
 				if err != nil {
 					return err
 				}
@@ -200,7 +200,7 @@ func AppendElement(v interface{}, builder *strings.Builder, typed bool) error {
 					// NON NULL
 					return protocol.NewUnexpectedProtocolError("Appending an nil element to an any-array ", nil) // NON NULL
 				}
-				err := AppendElement(e, builder, false)
+				err := AppendElement(builder, false, e)
 				if err != nil {
 					return err
 				}

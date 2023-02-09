@@ -18,7 +18,7 @@ func (q USet) AppendToPacket(builder *strings.Builder) error {
 		return err
 	}
 
-	err = AppendElement("USET", builder, false)
+	err = AppendElement(builder, false, "USET")
 	if err != nil {
 		return err
 	}

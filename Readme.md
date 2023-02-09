@@ -67,9 +67,9 @@ resp, err := c.Get(ctx, "KEY")
 ```go
 p := skytable.NewQueryPacket(
     []skytable.Action{
-        action.NewDel([]string { "KEY" }),
-        action.NewSet("KEY", "VALUE"),
-        action.NewGet("KEY"),
+		action.Del { Keys: []string{k} },
+		action.Set { Key: k, Value: v },
+		action.Get { Key: k },
 })
 
 resp, err := c.BuildAndExecQuery(p)

@@ -292,6 +292,40 @@ func TestDelSetGetSinglePacket(t *testing.T) {
 	}
 }
 
+func TestConnLocalGetNULL(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	c, err := NewConnAuth()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err := c.Get(ctx, "key-not-to-be-found-you-really-should-not-have-this-key")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log(resp)
+}
+
+func TestConnLocalMGetNULL(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	c, err := NewConnAuth()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err := c.MGet(ctx, []string{"key-not-to-be-found-you-really-should-not-have-this-key"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log(resp)
+}
+
 func TestConnLocalSetMGet(t *testing.T) {
 	seqSize := []int{64, 512, 1024, 4096}
 
@@ -338,6 +372,8 @@ func TestConnLocalSetMGet(t *testing.T) {
 				keys[j] = k
 			}
 		}
+
+		keys[0] = "key-not-to-be-found-you-really-should-not-have-this-key"
 
 		p := skytable.NewQueryPacket(
 			[]skytable.Action{

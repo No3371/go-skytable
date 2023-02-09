@@ -320,14 +320,14 @@ func (c *ConnPool) MPop(ctx context.Context, keys []string) (*protocol.TypedArra
 	return conn.MPop(ctx, keys)
 }
 
-func (c *ConnPool) Exec(ctx context.Context, packet *QueryPacket) ([]response.ResponseEntry, error) {
+func (c *ConnPool) Exec(packet *QueryPacket) ([]response.ResponseEntry, error) {
 	conn, err := c.popConn(false)
 	if err != nil {
 		return nil, fmt.Errorf("*ConnPool.Exec(): %w", err)
 	}
 	defer c.pushConn(conn)
 
-	return conn.Exec(ctx, packet)
+	return conn.Exec(packet)
 }
 
 func (c *ConnPool) ExecSingleActionPacketRaw(segments ...any) (response.ResponseEntry, error) {

@@ -847,9 +847,7 @@ func (c *Conn) MPop(ctx context.Context, keys []string) (*protocol.TypedArray, e
 	}
 }
 
-func (c *Conn) Exec(ctx context.Context, packet *QueryPacket) ([]response.ResponseEntry, error) {
-	packet.ctx = ctx
-
+func (c *Conn) Exec(packet *QueryPacket) ([]response.ResponseEntry, error) {
 	rp, err := c.BuildAndExecQuery(packet)
 	if err != nil {
 		return nil, err

@@ -113,7 +113,7 @@ type Skytable interface {
 	// If `elements` is nil, it's omitted in the sent command.`
 	LSet(ctx context.Context, listName string, elements []any) error
 
-	Exec(ctx context.Context, packet *QueryPacket) ([]response.ResponseEntry, error)
+	Exec(packet *QueryPacket) ([]response.ResponseEntry, error)
 	ExecSingleActionPacketRaw(segments ...any) (response.ResponseEntry, error)
 
 	// https://docs.skytable.io/ddl/#use

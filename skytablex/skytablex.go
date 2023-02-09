@@ -18,7 +18,7 @@ type ConnX struct {
 
 // SimTTL only works with BinaryString values
 func (c *ConnX) GetWithSimTTL(ctx context.Context, key string) (resp []byte, tsUnix time.Time, err error) {
-	p := skytable.NewQueryPacket( []skytable.Action {
+	p := skytable.NewQueryPacketContext(ctx, []skytable.Action {
 		action.Get { Key: key },
 		action.Get { Key: key + "_timestamp" },
 	})
@@ -65,7 +65,7 @@ func (c *ConnX) GetWithSimTTL(ctx context.Context, key string) (resp []byte, tsU
 
 // SimTTL only works with BinaryString values
 func (c *ConnX) PopWithSimTTL(ctx context.Context, key string) (resp []byte, tsUnix time.Time, err error) {
-	p := skytable.NewQueryPacket( []skytable.Action {
+	p := skytable.NewQueryPacketContext(ctx, []skytable.Action {
 		action.Pop{ Key: key },
 		action.Pop{ Key: key + "_timestamp" },
 	})
@@ -119,7 +119,7 @@ func (c *ConnX) SetWithSimTTL(ctx context.Context, key string, value []byte) err
     ts := make([]byte, 8)
     binary.BigEndian.PutUint64(ts, uint64(time.Now().UnixMilli()))
 
-	p := skytable.NewQueryPacket( []skytable.Action {
+	p := skytable.NewQueryPacketContext(ctx, []skytable.Action {
 		action.Set{ Key: key, Value: value },
 		action.Set{ Key: key + "_timestamp", Value: ts },
 	})

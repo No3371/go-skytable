@@ -12,3 +12,10 @@ func NewQueryPacket(actions []Action) *QueryPacket {
 		actions: actions,
 	}
 }
+
+func NewQueryPacketContext(ctx context.Context, actions []Action) *QueryPacket {
+	return &QueryPacket{
+		ctx: ctx,
+		actions: actions,
+	}
+}

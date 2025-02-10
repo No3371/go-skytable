@@ -3,9 +3,12 @@ package skytable_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/rand"
 	"net"
 	"os"
+	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -38,7 +41,6 @@ func GetTestToken() (string, bool) {
 	return string(read), true
 }
 
-
 func NewConnNoAuth() (*skytable.Conn, error) {
 	return skytable.NewConn(&net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: NonAuthInstancePort})
 }
@@ -67,7 +69,7 @@ func NewConnPoolNoAuth() (*skytable.ConnPool, error) {
 
 func NewConnPoolAuth() (*skytable.ConnPool, error) {
 	localAddr := &net.TCPAddr{IP: []byte{127, 0, 0, 1}, Port: int(protocol.DefaultPort)}
-	authProvider:= func() (username, token string, err error) {
+	authProvider := func() (username, token string, err error) {
 		t, gotToken := GetTestToken()
 		if !gotToken {
 			return "", "", errors.New("failed to get token of" + testUserName)
@@ -270,9 +272,9 @@ func TestDelSetGetSinglePacket(t *testing.T) {
 	v := "り8しれ 工さ小"
 
 	p := skytable.NewQueryPacket([]skytable.Action{
-		action.Del { Keys: []string{k} },
-		action.Set { Key: k, Value: v },
-		action.Get { Key: k },
+		action.Del{Keys: []string{k}},
+		action.Set{Key: k, Value: v},
+		action.Get{Key: k},
 	})
 
 	rp, err := c.BuildAndExecQuery(p)
@@ -377,7 +379,7 @@ func TestConnLocalSetMGet(t *testing.T) {
 
 		p := skytable.NewQueryPacket(
 			[]skytable.Action{
-				action.MGet{ Keys: keys[:seq] },
+				action.MGet{Keys: keys[:seq]},
 			})
 
 		sTime = time.Now()
@@ -759,4 +761,18 @@ func TestInterface(t *testing.T) {
 
 	st.Heya(context.Background(), "")
 
+}
+
+func BenchmarkStringBuilderFprintfInt(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		builder := strings.Builder{}
+		fmt.Fprintf(&builder, "%d", 123)
+	}
+}
+
+func BenchmarkStringBuilderItoAInt(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		builder := strings.Builder{}
+		builder.WriteString(strconv.Itoa(123))
+	}
 }

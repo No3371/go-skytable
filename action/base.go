@@ -2,9 +2,9 @@ package action
 
 import (
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
+	"unsafe"
 
 	"github.com/No3371/go-skytable/protocol"
 )
@@ -34,103 +34,125 @@ func AppendElement(builder *strings.Builder, typed bool, v interface{}) error {
 	switch v := v.(type) {
 	case string:
 		if typed {
-			fmt.Fprintf(builder, "+%d\n%s\n", len(v), v)
+			builder.WriteRune(rune(protocol.DataTypeString))
+			builder.WriteString(strconv.Itoa(len(v)))
+			builder.WriteRune('\n')
+			builder.WriteString(v)
+			builder.WriteRune('\n')
 		} else {
-			fmt.Fprintf(builder, "%d\n%s\n", len(v), v)
+			builder.WriteString(strconv.Itoa(len(v)))
+			builder.WriteRune('\n')
+			builder.WriteString(v)
+			builder.WriteRune('\n')
 		}
 	case int8:
 		if typed {
-			if v >= 100 || v <= -100 {
-				fmt.Fprintf(builder, "-3\n%d\n", v)
-			} else if v >= 10 || v <= -10 {
-				fmt.Fprintf(builder, "-2\n%d\n", v)
-			} else {
-				fmt.Fprintf(builder, "-1\n%d\n", v)
-			}
-		} else {
-			if v >= 100 || v <= -100 {
-				fmt.Fprintf(builder, "3\n%d\n", v)
-			} else if v >= 10 || v <= -10 {
-				fmt.Fprintf(builder, "2\n%d\n", v)
-			} else {
-				fmt.Fprintf(builder, "1\n%d\n", v)
-			}
+			builder.WriteRune(rune(protocol.DataTypeSmallintSigned))
 		}
+		if v >= 100 || v <= -100 {
+			builder.WriteRune('3')
+		} else if v >= 10 || v <= -10 {
+			builder.WriteRune('2')
+		} else {
+			builder.WriteRune('1')
+		}
+		builder.WriteRune('\n')
+		builder.WriteString(strconv.Itoa(int(v)))
+		builder.WriteRune('\n')
 	case uint8:
 		if typed {
-			if v >= 100 {
-				fmt.Fprintf(builder, ".3\n%d\n", v)
-			} else if v >= 10 {
-				fmt.Fprintf(builder, ".2\n%d\n", v)
-			} else {
-				fmt.Fprintf(builder, ".1\n%d\n", v)
-			}
-		} else {
-			if v >= 100 {
-				fmt.Fprintf(builder, "3\n%d\n", v)
-			} else if v >= 10 {
-				fmt.Fprintf(builder, "2\n%d\n", v)
-			} else {
-				fmt.Fprintf(builder, "1\n%d\n", v)
-			}
+			builder.WriteRune(rune(protocol.DataTypeSmallint))
 		}
-	case int: // as int64
+		if v >= 100 {
+			builder.WriteRune('3')
+		} else if v >= 10 {
+			builder.WriteRune('2')
+		} else {
+			builder.WriteRune('1')
+		}
+		builder.WriteRune('\n')
+		builder.WriteString(strconv.Itoa(int(v)))
+		builder.WriteRune('\n')
+	case int:
+		formated := strconv.FormatInt(int64(v), 10)
 		if typed {
-			fmt.Fprintf(builder, ";%d\n%d\n", int64(math.Log10(float64(v)))+1, v)
-		} else {
-			fmt.Fprintf(builder, "%d\n%d\n", int64(math.Log10(float64(v)))+1, v)
+			builder.WriteRune(rune(protocol.DataTypeIntSigned))
 		}
+		builder.WriteString(strconv.Itoa(len(formated)))
+		builder.WriteRune('\n')
+		builder.WriteString(formated)
+		builder.WriteRune('\n')
 	case int32: // as int64
+		formated := strconv.FormatInt(int64(v), 10)
 		if typed {
-			fmt.Fprintf(builder, ";%d\n%d\n", int64(math.Log10(float64(v)))+1, v)
-		} else {
-			fmt.Fprintf(builder, "%d\n%d\n", int64(math.Log10(float64(v)))+1, v)
+			builder.WriteRune(rune(protocol.DataTypeIntSigned))
 		}
+		builder.WriteString(strconv.Itoa(len(formated)))
+		builder.WriteRune('\n')
+		builder.WriteString(formated)
+		builder.WriteRune('\n')
 	case int64:
+		formated := strconv.FormatInt(int64(v), 10)
 		if typed {
-			fmt.Fprintf(builder, ";%d\n%d\n", int64(math.Log10(float64(v)))+1, v)
-		} else {
-			fmt.Fprintf(builder, "%d\n%d\n", int64(math.Log10(float64(v)))+1, v)
+			builder.WriteRune(rune(protocol.DataTypeIntSigned))
 		}
+		builder.WriteString(strconv.Itoa(len(formated)))
+		builder.WriteRune('\n')
+		builder.WriteString(formated)
+		builder.WriteRune('\n')
 	case uint: // as uint64
+		formated := strconv.FormatUint(uint64(v), 10)
 		if typed {
-			fmt.Fprintf(builder, ":%d\n%d\n", uint64(math.Log10(float64(v)))+1, v)
-		} else {
-			fmt.Fprintf(builder, "%d\n%d\n", uint64(math.Log10(float64(v)))+1, v)
+			builder.WriteRune(rune(protocol.DataTypeInt))
 		}
+		builder.WriteString(strconv.Itoa(len(formated)))
+		builder.WriteRune('\n')
+		builder.WriteString(formated)
+		builder.WriteRune('\n')
 	case uint32: // as uint64
+		formated := strconv.FormatUint(uint64(v), 10)
 		if typed {
-			fmt.Fprintf(builder, ":%d\n%d\n", uint64(math.Log10(float64(v)))+1, v)
-		} else {
-			fmt.Fprintf(builder, "%d\n%d\n", uint64(math.Log10(float64(v)))+1, v)
+			builder.WriteRune(rune(protocol.DataTypeInt))
 		}
+		builder.WriteString(strconv.Itoa(len(formated)))
+		builder.WriteRune('\n')
+		builder.WriteString(formated)
+		builder.WriteRune('\n')
 	case uint64:
+		formated := strconv.FormatUint(uint64(v), 10)
 		if typed {
-			fmt.Fprintf(builder, ":%d\n%d\n", uint64(math.Log10(float64(v)))+1, v)
-		} else {
-			fmt.Fprintf(builder, "%d\n%d\n", uint64(math.Log10(float64(v)))+1, v)
+			builder.WriteRune(rune(protocol.DataTypeInt))
 		}
+		builder.WriteString(strconv.Itoa(len(formated)))
+		builder.WriteRune('\n')
+		builder.WriteString(formated)
+		builder.WriteRune('\n')
 	case float32:
+		formated := strconv.FormatFloat(float64(v), 'f', -1, 64)
 		if typed {
-			fmt.Fprintf(builder, "%%%d\n%f\n", len(strconv.FormatFloat(float64(v), 'f', -1, 32)), v)
-		} else {
-			fmt.Fprintf(builder, "%d\n%f\n", len(strconv.FormatFloat(float64(v), 'f', -1, 32)), v)
+			builder.WriteRune(rune(protocol.DataTypeFloat))
 		}
+		builder.WriteString(strconv.Itoa(len(formated)))
+		builder.WriteRune('\n')
+		builder.WriteString(formated)
+		builder.WriteRune('\n')
 	case []byte:
 		// ???
 		if typed {
-			fmt.Fprintf(builder, "?%d\n", len(string(v)))
-		} else {
-			fmt.Fprintf(builder, "%d\n", len(string(v)))
+			builder.WriteRune(rune(protocol.DataTypeBinaryString))
 		}
+		builder.WriteString(strconv.Itoa(len(*(*string)(unsafe.Pointer(&v)))))
+		builder.WriteRune('\n')
 		builder.Write(v)
 		builder.WriteByte('\n')
 	case *protocol.TypedArray:
 		if !typed {
 			return protocol.NewUnexpectedProtocolError("Appending an array without type info", nil)
 		}
-
-		fmt.Fprintf(builder, "%c%c%d\n", v.ArrayType, v.ElementType, len(v.Elements))
+		builder.WriteRune(rune(v.ArrayType))
+		builder.WriteRune(rune(v.ElementType))
+		builder.WriteString(strconv.Itoa(len(v.Elements)))
+		builder.WriteRune('\n')
 		switch v.ArrayType {
 		case protocol.CompoundTypeTypedArray:
 			for _, e := range v.Elements {
@@ -156,7 +178,9 @@ func AppendElement(builder *strings.Builder, typed bool, v interface{}) error {
 		switch v.ArrayType {
 		case protocol.CompoundTypeArray:
 			if typed {
-				fmt.Fprintf(builder, "%c%d\n", protocol.DataTypeArray, len(v.Elements))
+				builder.WriteRune(rune(protocol.DataTypeArray))
+				builder.WriteString(strconv.Itoa(len(v.Elements)))
+				builder.WriteRune('\n')
 			} else {
 				return protocol.NewUnexpectedProtocolError("Appending an array without type info", nil)
 			}
@@ -168,7 +192,9 @@ func AppendElement(builder *strings.Builder, typed bool, v interface{}) error {
 			}
 		case protocol.CompoundTypeFlatArray:
 			if typed {
-				fmt.Fprintf(builder, "%c%d\n", protocol.CompoundTypeFlatArray, len(v.Elements))
+				builder.WriteRune(rune(protocol.CompoundTypeFlatArray))
+				builder.WriteString(strconv.Itoa(len(v.Elements)))
+				builder.WriteRune('\n')
 			} else {
 				return protocol.NewUnexpectedProtocolError("Appending an array without type info", nil)
 			}
@@ -191,7 +217,9 @@ func AppendElement(builder *strings.Builder, typed bool, v interface{}) error {
 			return protocol.ErrIncorrectArrayUsage
 		case protocol.CompoundTypeAnyArray:
 			if typed {
-				fmt.Fprintf(builder, "%c%d\n", protocol.DataTypeAnyArray, len(v.Elements))
+				builder.WriteRune(rune(protocol.DataTypeAnyArray))
+				builder.WriteString(strconv.Itoa(len(v.Elements)))
+				builder.WriteRune('\n')
 			} else {
 				return protocol.NewUnexpectedProtocolError("Appending an array without type info", nil)
 			}
@@ -220,15 +248,26 @@ func AppendElement(builder *strings.Builder, typed bool, v interface{}) error {
 func AppendArrayHeader(arrayType protocol.CompoundType, elementType protocol.DataType, elementCount int, builder *strings.Builder) error {
 	switch arrayType {
 	case protocol.CompoundTypeArray:
-		fmt.Fprintf(builder, "%c%d\n", protocol.DataTypeArray, elementCount)
+		builder.WriteRune(rune(protocol.DataTypeArray))
+		builder.WriteString(strconv.Itoa(elementCount))
+		builder.WriteRune('\n')
 	case protocol.CompoundTypeFlatArray:
-		fmt.Fprintf(builder, "%c%d\n", protocol.CompoundTypeFlatArray, elementCount)
+		builder.WriteRune(rune(protocol.CompoundTypeFlatArray))
+		builder.WriteString(strconv.Itoa(elementCount))
+		builder.WriteRune('\n')
 	case protocol.CompoundTypeTypedArray:
-		fmt.Fprintf(builder, "%c%c%d\n", protocol.CompoundTypeFlatArray, elementType, elementCount)
+		builder.WriteRune(rune(protocol.CompoundTypeFlatArray))
+		builder.WriteRune(rune(elementType))
+		builder.WriteString(strconv.Itoa(elementCount))
+		builder.WriteRune('\n')
 	case protocol.CompoundTypeAnyArray:
-		fmt.Fprintf(builder, "%c%d\n", protocol.DataTypeAnyArray, elementCount)
+		builder.WriteRune(rune(protocol.DataTypeAnyArray))
+		builder.WriteString(strconv.Itoa(elementCount))
+		builder.WriteRune('\n')
 	case protocol.CompoundTypeTypedNonNullArray:
-		fmt.Fprintf(builder, "%c%d\n", protocol.DataTypeTypedNonNullArray, elementCount)
+		builder.WriteRune(rune(protocol.DataTypeTypedNonNullArray))
+		builder.WriteString(strconv.Itoa(elementCount))
+		builder.WriteRune('\n')
 	default:
 		return protocol.NewUnexpectedProtocolError("Appending array header for an unexpected arrayType", nil)
 	}
